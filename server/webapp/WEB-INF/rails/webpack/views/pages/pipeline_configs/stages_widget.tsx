@@ -24,6 +24,7 @@ import {StageConfig} from "models/new_pipeline_configs/stage_configuration";
 import {Secondary} from "views/components/buttons";
 import {CollapsiblePanel} from "views/components/collapsible_panel";
 import * as Icons from "views/components/icons/index";
+import {JobSettingsModal} from "views/pages/pipeline_configs/stages/jobs/settings/job_settings_modal";
 import {StageSettingsModal} from "views/pages/pipeline_configs/stages/settings/stage_settings_modal";
 import styles from "./stages.scss";
 
@@ -49,6 +50,7 @@ export class StageBoxWidget extends MithrilComponent<StageBoxAttrs, StageBoxStat
       ? undefined
       : <div className={styles.forwardIconWrapper}><Icons.Forward iconOnly={true}/></div>;
 
+    /* TODO: Vrushali will move job settings to proper place */
     return <div class={`${styles.stageWithManualApprovalContainer} stage-box`}>
       <div data-test-id="stage-box" className={styles.stageBox}>
         <div className={styles.stageNameHeader} data-test-id={`stage-header-for-${vnode.attrs.stage.name()}`}>
@@ -60,6 +62,7 @@ export class StageBoxWidget extends MithrilComponent<StageBoxAttrs, StageBoxStat
         </div>
         <div className={styles.stageContent} data-test-id={`stage-body-for-${vnode.attrs.stage.name()}`}>
           {"Body for stage: " + vnode.attrs.stage.name()}
+          <a href="#" onclick={this.openJobSettingsModal}>Job setting</a>
         </div>
         <div className={styles.stageBtnGroup} data-test-id={`stage-btn-group-for-${vnode.attrs.stage.name()}`}>
           <Secondary small={true}>Add Job</Secondary>
@@ -67,6 +70,10 @@ export class StageBoxWidget extends MithrilComponent<StageBoxAttrs, StageBoxStat
       </div>
       {triggerNextStageIcon}
     </div>;
+  }
+
+  openJobSettingsModal() {
+    new JobSettingsModal().render();
   }
 }
 
