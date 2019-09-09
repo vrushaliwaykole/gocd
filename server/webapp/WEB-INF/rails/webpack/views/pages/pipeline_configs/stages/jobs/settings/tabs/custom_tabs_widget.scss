@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import {MithrilComponent} from "jsx/mithril-component";
-import m from "mithril";
-import {HelpText} from "views/components/forms/input_fields";
+.add-custom-tab-btn-container {
+  margin-bottom: 20px;
 
-export class CustomTabsWidget extends MithrilComponent<{}> {
-  view(vnode: m.Vnode<{}>) {
-    return <div>
-      <HelpText helpTextId="help-job-settings-custom-tabs"
-                helpText="Lets you add new tabs within the Job Details page."
-                docLink="faq/dev_see_artifact_as_tab.html"/>
-    </div>;
+  span {
+    margin-left: 10px;
   }
 }

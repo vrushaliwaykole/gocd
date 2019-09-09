@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-import m from "mithril";
-import {Modal, Size} from "views/components/modal";
-import {Tabs} from "views/components/tab";
-import {CustomTabsWidget} from "./tabs/custom_tabs_widget";
+import {TestHelper} from "views/pages/spec/test_helper";
+import {JobSettingsModal} from "../job_settings_modal";
 
-export class JobSettingsModal extends Modal {
-  constructor() {
-    super(Size.large);
-  }
+describe("JobSettingsModalSpec", () => {
+  const helper = new TestHelper();
 
-  body(): m.Children {
-    const customTabs = <CustomTabsWidget customTabs={[]}/>;
+  it("should render pipeline name field", () => {
+    const modal = new JobSettingsModal();
+    helper.mount(modal.body.bind(modal));
 
-    return <div data-test-id="job-settings-modal">
-      <Tabs tabs={["Custom tabs"]} contents={[customTabs]}/>
-    </div>;
-  }
+    expect(modal.title()).toEqual("Job Settings");
+    expect(helper.findByDataTestId("tab-header-0")).toHaveText("Custom tabs");
 
-  title(): string {
-    return "Job Settings";
-  }
-}
+    helper.unmount();
+  });
+});

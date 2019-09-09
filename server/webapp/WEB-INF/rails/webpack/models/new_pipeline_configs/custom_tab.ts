@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-import m from "mithril";
-import {Modal, Size} from "views/components/modal";
-import {Tabs} from "views/components/tab";
-import {CustomTabsWidget} from "./tabs/custom_tabs_widget";
+import {JsonUtils} from "helpers/json_utils";
+import Stream from "mithril/stream";
+import {ValidatableMixin} from "models/mixins/new_validatable_mixin";
 
-export class JobSettingsModal extends Modal {
-  constructor() {
-    super(Size.large);
+export class CustomTab extends ValidatableMixin {
+  name: Stream<string> = Stream();
+  path: Stream<string> = Stream();
+
+  constructor(name: string, path: string) {
+    super();
+    this.name(name);
+    this.path(path);
+
+    this.validatePresenceOf("name", {message: "Name is required"});
+    this.validatePresenceOf("path", {message: "Path is required"});
   }
 
-  body(): m.Children {
-    const customTabs = <CustomTabsWidget customTabs={[]}/>;
-
-    return <div data-test-id="job-settings-modal">
-      <Tabs tabs={["Custom tabs"]} contents={[customTabs]}/>
-    </div>;
-  }
-
-  title(): string {
-    return "Job Settings";
+  toApiPayload() {
+    return JsonUtils.toSnakeCasedObject(this);
   }
 }
