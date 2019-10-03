@@ -722,4 +722,8 @@ public class Routes {
     public class ServerSiteUrlsConfig {
         public static final String BASE = "/api/admin/config/server/site_urls";
     }
+
+    public class Artifacts {
+        public static final String BASE = "/api/admin/config/server/artifacts";
+    }
 }

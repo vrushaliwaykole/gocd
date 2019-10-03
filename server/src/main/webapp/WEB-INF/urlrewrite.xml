@@ -24,6 +24,11 @@
 
 <urlrewrite>
   <rule>
+    <name>artifacts API</name>
+    <from>^/api/admin/config/server/artifacts$</from>
+    <to last="true">/spark/api/admin/config/server/artifacts</to>
+  </rule>
+  <rule>
     <name>environments UI</name>
     <from>^/admin/environments(/?)$</from>
     <run class="com.thoughtworks.go.server.SparkOrRailsEnvironmentsPageToggle" method="environmentsPage"/>

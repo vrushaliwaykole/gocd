@@ -17,6 +17,7 @@ package com.thoughtworks.go.server.service;
 
 import com.thoughtworks.go.config.*;
 import com.thoughtworks.go.config.update.CreateOrUpdateConfigServerSiteUrlsCommand;
+import com.thoughtworks.go.config.update.UpdateArtifactConfigCommand;
 import com.thoughtworks.go.domain.ServerSiteUrlConfig;
 import com.thoughtworks.go.domain.materials.ValidationBean;
 import com.thoughtworks.go.i18n.LocalizedMessage;
@@ -161,6 +162,7 @@ public class ServerConfigService implements BaseUrlProvider {
         return serverConfig().getWebhookSecret();
     }
 
+
     @Override
     public boolean hasAnyUrlConfigured() {
         return serverConfig().hasAnyUrlConfigured();
@@ -172,5 +174,13 @@ public class ServerConfigService implements BaseUrlProvider {
 
     public void createOrUpdateServerSiteUrls(SiteUrls siteUrls) {
         goConfigService.updateConfig(new CreateOrUpdateConfigServerSiteUrlsCommand(siteUrls), currentUsername());
+    }
+
+    public ArtifactConfig getArtifactsConfig() {
+        return serverConfig().getArtifactConfig();
+    }
+
+    public void updateArtifactConfig(ArtifactConfig modifiedArtifactConfig) {
+        goConfigService.updateConfig(new UpdateArtifactConfigCommand(modifiedArtifactConfig), currentUsername());
     }
 }

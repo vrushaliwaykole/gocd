@@ -440,3 +440,7 @@ api/api-materials-v2/out/
 api/api-materials-v2/target/
 api/api-materials-v2/logs/
 api/api-materials-v2/config/
+api/api-artifacts-v1/out/
+api/api-artifacts-v1/target/
+api/api-artifacts-v1/logs/
+api/api-artifacts-v1/config/

@@ -20,6 +20,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,11 +42,14 @@ public class ArtifactConfig implements Validatable {
 
     @Override
     public void validate(ValidationContext validationContext) {
+        artifactsDir.validate(validationContext);
         purgeSettings.validate(validationContext);
     }
 
     @Override
     public ConfigErrors errors() {
+        errors.addAll(artifactsDir.errors());
+        errors.addAll(purgeSettings.errors());
         return errors;
     }
 
@@ -57,5 +61,9 @@ public class ArtifactConfig implements Validatable {
     @PostConstruct
     public void ensureThatArtifactDirectoryExists() {
         artifactsDir.ensureThatArtifactDirectoryExists();
+    }
+
+    public boolean hasErrors() {
+        return !errors().isEmpty();
     }
 }
