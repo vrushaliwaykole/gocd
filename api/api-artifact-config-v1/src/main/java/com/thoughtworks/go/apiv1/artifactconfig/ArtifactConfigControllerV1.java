@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thoughtworks.go.apiv1.artifacts;
+package com.thoughtworks.go.apiv1.artifactconfig;
 
 import com.thoughtworks.go.api.ApiController;
 import com.thoughtworks.go.api.ApiVersion;
@@ -23,18 +23,17 @@ import com.thoughtworks.go.api.base.OutputWriter;
 import com.thoughtworks.go.api.representers.JsonReader;
 import com.thoughtworks.go.api.spring.ApiAuthenticationHelper;
 import com.thoughtworks.go.api.util.GsonTransformer;
-import com.thoughtworks.go.apiv1.artifacts.represernter.ArtifactConfigRepresenter;
+import com.thoughtworks.go.api.util.MessageJson;
+import com.thoughtworks.go.apiv1.artifactconfig.represernter.ArtifactConfigRepresenter;
 import com.thoughtworks.go.config.ArtifactConfig;
 import com.thoughtworks.go.config.ConfigTag;
 import com.thoughtworks.go.config.exceptions.EntityType;
 import com.thoughtworks.go.config.exceptions.GoConfigInvalidException;
-import com.thoughtworks.go.config.update.UpdateArtifactConfigCommand;
-import com.thoughtworks.go.i18n.LocalizedMessage;
 import com.thoughtworks.go.server.service.EntityHashingService;
 import com.thoughtworks.go.server.service.ServerConfigService;
-import com.thoughtworks.go.server.service.result.HttpLocalizedOperationResult;
 import com.thoughtworks.go.spark.Routes;
 import com.thoughtworks.go.spark.spring.SparkSpringController;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import spark.Request;
@@ -45,18 +44,17 @@ import java.util.function.Consumer;
 
 import static com.thoughtworks.go.api.util.HaltApiResponses.haltBecauseEtagDoesNotMatch;
 import static com.thoughtworks.go.i18n.LocalizedMessage.entityConfigValidationFailed;
-import static com.thoughtworks.go.server.newsecurity.utils.SessionUtils.currentUsername;
 import static spark.Spark.*;
 
 @Component
-public class ArtifactsControllerV1 extends ApiController implements SparkSpringController, CrudController<ArtifactConfig> {
+public class ArtifactConfigControllerV1 extends ApiController implements SparkSpringController, CrudController<ArtifactConfig> {
 
     private final ApiAuthenticationHelper apiAuthenticationHelper;
     private ServerConfigService serverConfigService;
     private EntityHashingService entityHashingService;
 
     @Autowired
-    public ArtifactsControllerV1(ApiAuthenticationHelper apiAuthenticationHelper, EntityHashingService entityHashingService, ServerConfigService serverConfigService) {
+    public ArtifactConfigControllerV1(ApiAuthenticationHelper apiAuthenticationHelper, EntityHashingService entityHashingService, ServerConfigService serverConfigService) {
         super(ApiVersion.v1);
         this.apiAuthenticationHelper = apiAuthenticationHelper;
         this.serverConfigService = serverConfigService;
@@ -65,7 +63,7 @@ public class ArtifactsControllerV1 extends ApiController implements SparkSpringC
 
     @Override
     public String controllerBasePath() {
-        return Routes.Artifacts.BASE;
+        return Routes.ArtifactConfig.BASE;
     }
 
     @Override
@@ -80,25 +78,22 @@ public class ArtifactsControllerV1 extends ApiController implements SparkSpringC
         });
     }
 
-    public String update(Request request, Response response) {
+    public String update(Request request, Response response) throws IOException {
         ArtifactConfig modifiedArtifactConfig = buildEntityFromRequestBody(request);
 
         if (isPutRequestStale(request, serverConfigService.getArtifactsConfig())) {
             throw haltBecauseEtagDoesNotMatch();
         }
 
-        HttpLocalizedOperationResult operationResult = new HttpLocalizedOperationResult();
         try {
             serverConfigService.updateArtifactConfig(modifiedArtifactConfig);
-        } catch (Exception e) {
-            if ((e instanceof GoConfigInvalidException) && !operationResult.hasMessage()) {
-                operationResult.unprocessableEntity(entityConfigValidationFailed(modifiedArtifactConfig.getClass().getAnnotation(ConfigTag.class).value(), e.getMessage()));
-            } else if (!operationResult.hasMessage()) {
-                operationResult.badRequest(LocalizedMessage.composite("Failed to update artifact config.", e.getMessage()));
-            }
+        } catch (GoConfigInvalidException e) {
+            response.status(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+            String errorMessage = entityConfigValidationFailed(modifiedArtifactConfig.getClass().getAnnotation(ConfigTag.class).value(), e.getAllErrorMessages());
+            return MessageJson.create(errorMessage, jsonWriter(modifiedArtifactConfig));
         }
 
-        return handleCreateOrUpdateResponse(request, response, modifiedArtifactConfig, operationResult);
+        return show(request, response);
     }
 
     public String show(Request request, Response response) throws IOException {

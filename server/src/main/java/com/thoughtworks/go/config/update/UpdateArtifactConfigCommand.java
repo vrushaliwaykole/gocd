@@ -17,9 +17,13 @@
 package com.thoughtworks.go.config.update;
 
 import com.thoughtworks.go.config.*;
+import com.thoughtworks.go.config.ErrorCollector;
 import com.thoughtworks.go.config.commands.EntityConfigUpdateCommand;
 import com.thoughtworks.go.config.exceptions.EntityType;
 import com.thoughtworks.go.config.exceptions.GoConfigInvalidException;
+import com.thoughtworks.go.domain.ConfigErrors;
+
+import java.util.List;
 
 public class UpdateArtifactConfigCommand implements EntityConfigUpdateCommand<ArtifactConfig> {
     private ArtifactConfig artifactConfig;
@@ -46,9 +50,11 @@ public class UpdateArtifactConfigCommand implements EntityConfigUpdateCommand<Ar
         preprocessedArtifactConfig = preprocessedConfig.server().getArtifactConfig();
         preprocessedArtifactConfig.validate(new ConfigSaveValidationContext(preprocessedConfig));
 
-        if (!preprocessedArtifactConfig.errors().isEmpty()) {
-            this.artifactConfig.errors().addAll(preprocessedArtifactConfig.errors());
-            throw new GoConfigInvalidException(preprocessedConfig, preprocessedArtifactConfig.errors().asString());
+        BasicCruiseConfig.copyErrors(preprocessedArtifactConfig, artifactConfig);
+        List<ConfigErrors> allErrors = ErrorCollector.getAllErrors(artifactConfig);
+
+        if (!allErrors.isEmpty()) {
+            throw new GoConfigInvalidException(preprocessedConfig, allErrors);
         }
 
         return true;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thoughtworks.go.apiv1.artifacts
+package com.thoughtworks.go.apiv1.artifactconfig
 
 import com.thoughtworks.go.api.SecurityTestTrait
 import com.thoughtworks.go.api.spring.ApiAuthenticationHelper
@@ -30,14 +30,13 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.invocation.InvocationOnMock
 
 import static com.thoughtworks.go.api.base.JsonUtils.toObjectString
-import static com.thoughtworks.go.apiv1.artifacts.represernter.ArtifactConfigRepresenter.toJSON
+import static com.thoughtworks.go.apiv1.artifactconfig.represernter.ArtifactConfigRepresenter.toJSON
 import static org.mockito.Mockito.*
 import static org.mockito.MockitoAnnotations.initMocks
 
-class ArtifactsControllerV1Test implements SecurityServiceTrait, ControllerTrait<ArtifactsControllerV1> {
+class ArtifactConfigControllerV1Test implements SecurityServiceTrait, ControllerTrait<ArtifactConfigControllerV1> {
 
   @Mock
   ServerConfigService serverConfigService
@@ -51,8 +50,8 @@ class ArtifactsControllerV1Test implements SecurityServiceTrait, ControllerTrait
   }
 
   @Override
-  ArtifactsControllerV1 createControllerInstance() {
-    new ArtifactsControllerV1(new ApiAuthenticationHelper(securityService, goConfigService), entityHashingService, serverConfigService)
+  ArtifactConfigControllerV1 createControllerInstance() {
+    new ArtifactConfigControllerV1(new ApiAuthenticationHelper(securityService, goConfigService), entityHashingService, serverConfigService)
   }
 
   @Nested

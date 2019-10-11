@@ -1,4 +1,4 @@
-package com.thoughtworks.go.apiv1.artifacts.represernter
+package com.thoughtworks.go.apiv1.artifactconfig.represernter
 
 import com.thoughtworks.go.api.util.GsonTransformer
 import com.thoughtworks.go.config.ArtifactConfig
@@ -29,10 +29,10 @@ class ArtifactConfigRepresenterTest {
     def expectedJSON = [
       "_links"        : [
         "self": [
-          "href": "http://test.host/go/api/admin/config/server/artifacts"
+          "href": "http://test.host/go/api/admin/config/server/artifact_config"
         ],
         "doc" : [
-          "href": apiDocsUrl("#artifacts")
+          "href": apiDocsUrl("#artifact_config")
         ]
       ],
       "artifacts_dir" : "some-directory",
@@ -54,15 +54,15 @@ class ArtifactConfigRepresenterTest {
     })
 
     def expectedJSON = [
-      "_links"        : [
+      "_links"       : [
         "self": [
-          "href": "http://test.host/go/api/admin/config/server/artifacts"
+          "href": "http://test.host/go/api/admin/config/server/artifact_config"
         ],
         "doc" : [
-          "href": apiDocsUrl("#artifacts")
+          "href": apiDocsUrl("#artifact_config")
         ]
       ],
-      "artifacts_dir" : "some-directory"
+      "artifacts_dir": "some-directory"
     ]
 
     assertThatJson(json).isEqualTo(expectedJSON)
@@ -93,6 +93,8 @@ class ArtifactConfigRepresenterTest {
     artifactConfig.setArtifactsDir(artifactDirectory)
 
     PurgeSettings purgeSettings = new PurgeSettings()
+    purgeSettings.setPurgeStart(new PurgeStart(20))
+    purgeSettings.setPurgeUpto(new PurgeUpto(10))
     purgeSettings.addError("purgeStart", "purge-start-error")
     purgeSettings.addError("purgeUpto", "purge-upto-error")
     artifactConfig.setPurgeSettings(purgeSettings)
@@ -104,17 +106,23 @@ class ArtifactConfigRepresenterTest {
     def expectedJSON = [
       "_links"        : [
         "self": [
-          "href": "http://test.host/go/api/admin/config/server/artifacts"
+          "href": "http://test.host/go/api/admin/config/server/artifact_config"
         ],
         "doc" : [
-          "href": apiDocsUrl("#artifacts")
+          "href": apiDocsUrl("#artifact_config")
         ]
       ],
       "artifacts_dir" : "",
+      "purge_settings": [
+        "purge_start_disk_space": new Double(20.0),
+        "purge_upto_disk_space" : new Double(10.0),
+        "errors"                : [
+          "purge_start_disk_space": ["purge-start-error"],
+          "purge_upto_disk_space" : ["purge-upto-error"]
+        ]
+      ],
       "errors"        : [
-        "artifactDir"           : ["artifact-dir-error"],
-        "purge_start_disk_space": ["purge-start-error"],
-        "purge_upto_disk_space" : ["purge-upto-error"]
+        "artifactDir": ["artifact-dir-error"]
       ]
     ]
 

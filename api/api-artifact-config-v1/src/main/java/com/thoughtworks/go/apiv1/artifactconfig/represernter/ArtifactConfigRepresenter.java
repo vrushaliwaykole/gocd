@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thoughtworks.go.apiv1.artifacts.represernter;
+package com.thoughtworks.go.apiv1.artifactconfig.represernter;
 
 import com.thoughtworks.go.api.base.OutputWriter;
 import com.thoughtworks.go.api.representers.ErrorGetter;
@@ -22,7 +22,6 @@ import com.thoughtworks.go.api.representers.JsonReader;
 import com.thoughtworks.go.config.*;
 import com.thoughtworks.go.spark.Routes;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -31,28 +30,24 @@ import static com.thoughtworks.go.CurrentGoCDVersion.apiDocsUrl;
 
 public class ArtifactConfigRepresenter {
     public static void toJSON(OutputWriter outputWriter, ArtifactConfig artifacts) {
-
         Double purgeStartDiskSpace = artifacts.getPurgeSettings().getPurgeStart().getPurgeStartDiskSpace();
         Double purgeUptoDiskSpace = artifacts.getPurgeSettings().getPurgeUpto().getPurgeUptoDiskSpace();
-        String artifactsDir = artifacts.getArtifactsDir().getArtifactDir();
+        ArtifactDirectory artifactsDir = artifacts.getArtifactsDir();
 
         outputWriter.addLinks(outputLinkWriter -> outputLinkWriter
-                .addAbsoluteLink("doc", apiDocsUrl("#artifacts"))
-                .addLink("self", Routes.Artifacts.BASE))
-                .add("artifacts_dir", artifactsDir);
+                .addAbsoluteLink("doc", apiDocsUrl("#artifact_config"))
+                .addLink("self", Routes.ArtifactConfig.BASE))
+                .add("artifacts_dir", artifactsDir.getArtifactDir());
 
         if (purgeStartDiskSpace != null && purgeUptoDiskSpace != null) {
-            outputWriter.addChild("purge_settings", purgeSettingWriter -> purgeSettingWriter
-                    .addIfNotNull("purge_start_disk_space", purgeStartDiskSpace)
-                    .addIfNotNull("purge_upto_disk_space", purgeUptoDiskSpace));
+            outputWriter.addChild("purge_settings", purgeSettingWriter -> PurgeSettingsRepresenter.toJSON(purgeSettingWriter, artifacts.getPurgeSettings()));
+
         }
 
-        if (artifacts.hasErrors()) {
+        if (!artifactsDir.errors().isEmpty()) {
             Map<String, String> fieldMapping = new HashMap<>();
             fieldMapping.put("artifactsDir", "artifacts_dir");
-            fieldMapping.put("purgeStart", "purge_start_disk_space");
-            fieldMapping.put("purgeUpto", "purge_upto_disk_space");
-            outputWriter.addChild("errors", errorWriter -> new ErrorGetter(fieldMapping).toJSON(errorWriter, artifacts));
+            outputWriter.addChild("errors", errorWriter -> new ErrorGetter(fieldMapping).toJSON(errorWriter, artifactsDir));
         }
     }
 

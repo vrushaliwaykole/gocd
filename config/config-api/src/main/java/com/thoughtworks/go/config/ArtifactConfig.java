@@ -48,8 +48,6 @@ public class ArtifactConfig implements Validatable {
 
     @Override
     public ConfigErrors errors() {
-        errors.addAll(artifactsDir.errors());
-        errors.addAll(purgeSettings.errors());
         return errors;
     }
 

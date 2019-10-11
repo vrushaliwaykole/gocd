@@ -25,8 +25,8 @@
 <urlrewrite>
   <rule>
     <name>artifacts API</name>
-    <from>^/api/admin/config/server/artifacts$</from>
-    <to last="true">/spark/api/admin/config/server/artifacts</to>
+    <from>^/api/admin/config/server/artifact_config$</from>
+    <to last="true">/spark/api/admin/config/server/artifact_config</to>
   </rule>
   <rule>
     <name>environments UI</name>
