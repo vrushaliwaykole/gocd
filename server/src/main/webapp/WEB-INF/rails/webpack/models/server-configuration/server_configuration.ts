@@ -35,6 +35,7 @@ export class SiteUrls extends ValidatableMixin {
     super();
     this.siteUrl       = Stream(siteUrl);
     this.secureSiteUrl = Stream(secureSiteUrl);
+
     this.validateUrlPattern("siteUrl");
     this.validateUrlPattern("secureSiteUrl");
   }

@@ -20,18 +20,11 @@ import {ButtonGroup, Cancel, Primary} from "views/components/buttons";
 import {Form, FormBody} from "views/components/forms/form";
 import {TextField} from "views/components/forms/input_fields";
 import {ServerManagementAttrs} from "views/pages/server_configuration";
-import {ServerManagementCRUD} from "../../../models/server-configuration/server_configuartion_crud";
-import {SiteUrls} from "../../../models/server-configuration/server_configuration";
 import {OperationState} from "../page_operations";
 import styles from "./index.scss";
 
 export class ServerManagementWidget extends MithrilViewComponent<ServerManagementAttrs> {
   private ajaxOperationMonitor = Stream<OperationState>(OperationState.UNKNOWN);
-  private __siteUrls           = Stream<SiteUrls>();
-
-  oninit(vnode: m.Vnode<ServerManagementAttrs>) {
-    this.__siteUrls = Stream(vnode.attrs.siteUrls().clone());
-  }
 
   view(vnode: m.Vnode<ServerManagementAttrs>) {
     const siteUrlsDocsLink      = "installation/configuring_server_details.html#configure-site-urls";
@@ -39,6 +32,7 @@ export class ServerManagementWidget extends MithrilViewComponent<ServerManagemen
     const serverSiteUrlHelpText = "If you wish that your primary site URL be HTTP, but still want to have HTTPS endpoints " +
       "for the features that require SSL, you can specify this attribute with a value of the base HTTPS URL. Format: https://[host]:[port].";
 
+    const siteUrls = vnode.attrs.siteUrlsVM().siteUrls();
     return <div data-test-id={"server-management-widget"} class={styles.formContainer}>
       <FormBody>
         <div class={styles.formHeader}>
@@ -47,41 +41,26 @@ export class ServerManagementWidget extends MithrilViewComponent<ServerManagemen
         <div class={styles.formFields}>
           <Form compactForm={true}>
             <TextField label="Site URL"
-                       property={this.__siteUrls().siteUrl}
+                       property={siteUrls.siteUrl}
                        helpText={siteUrlHelpText}
                        docLink={siteUrlsDocsLink}
-                       errorText={this.__siteUrls().errors().errorsForDisplay("siteUrl")}/>
+                       errorText={siteUrls.errors().errorsForDisplay("siteUrl")}/>
             <TextField label="Secure Site URL"
-                       property={this.__siteUrls().secureSiteUrl}
-                       errorText={this.__siteUrls().errors().errorsForDisplay("secureSiteUrl")}
+                       property={siteUrls.secureSiteUrl}
+                       errorText={siteUrls.errors().errorsForDisplay("secureSiteUrl")}
                        helpText={serverSiteUrlHelpText}
                        docLink={siteUrlsDocsLink}/>
           </Form>
         </div>
         <div class={styles.buttons}>
           <ButtonGroup>
-            <Cancel data-test-id={"cancel"} onclick={() => {
-              this.__siteUrls(vnode.attrs.siteUrls().clone());
-            }}
+            <Cancel data-test-id={"cancel"} onclick={() => vnode.attrs.siteUrlsVM().reset()}
                     ajaxOperationMonitor={this.ajaxOperationMonitor}>Cancel</Cancel>
-            <Primary data-test-id={"save"} onclick={() => this.save(vnode)} ajaxOperation={() => this.save(vnode)}
+            <Primary data-test-id={"save"} onclick={vnode.attrs.onServerManagementSave} ajaxOperation={vnode.attrs.onServerManagementSave}
                      ajaxOperationMonitor={this.ajaxOperationMonitor}>Save</Primary>
           </ButtonGroup>
         </div>
       </FormBody>
     </div>;
-  }
-
-  save(vnode: m.Vnode<ServerManagementAttrs>) {
-    if (this.__siteUrls().isValid()) {
-      return ServerManagementCRUD.put(this.__siteUrls(), vnode.attrs.siteUrlsEtag).then((result) => {
-        result.do((successResponse) => {
-          vnode.attrs.onSuccessfulSave("Site urls saved successfully");
-        }, (errorResponse) => {
-          vnode.attrs.onError(JSON.parse(errorResponse.body!).message);
-        });
-      });
-    }
-    return Promise.resolve();
   }
 }

@@ -41,25 +41,17 @@ class ServerConfigurationRightPanel extends MithrilViewComponent<Attrs> {
   view(vnode: m.Vnode<Attrs>) {
     switch (vnode.attrs.activeConfiguration) {
       case Sections.SERVER_MANAGEMENT:
-        return <ServerManagementWidget siteUrls={vnode.attrs.siteUrls}
-                                       siteUrlsEtag={vnode.attrs.siteUrlsEtag}
-                                       onSuccessfulSave={vnode.attrs.onSuccessfulSave}
-                                       onError={vnode.attrs.onError}/>;
+        return <ServerManagementWidget siteUrlsVM={vnode.attrs.siteUrlsVM}
+                                       onServerManagementSave={vnode.attrs.onServerManagementSave}/>;
       case Sections.EMAIL_SERVER:
-        return <MailServerManagementWidget mailServer={vnode.attrs.mailServer}
-                                           onSuccessfulSave={vnode.attrs.onSuccessfulSave}
-                                           onError={vnode.attrs.onError}
-                                           onMailServerManagementDelete={vnode.attrs.onMailServerManagementDelete}
-                                           canDeleteMailServer={vnode.attrs.canDeleteMailServer}/>;
+        return <MailServerManagementWidget mailServerVM={vnode.attrs.mailServerVM}
+                                           onMailServerManagementSave={vnode.attrs.onMailServerManagementSave}
+                                           onMailServerManagementDelete={vnode.attrs.onMailServerManagementDelete}/>;
       case Sections.ARTIFACT_MANAGEMENT:
-        return <ArtifactsManagementWidget artifactConfig={vnode.attrs.artifactConfig}
-                                          artifactConfigEtag={vnode.attrs.artifactConfigEtag}
-                                          onSuccessfulSave={vnode.attrs.onSuccessfulSave}
-                                          onError={vnode.attrs.onError}/>;
+        return <ArtifactsManagementWidget artifactConfigVM={vnode.attrs.artifactConfigVM}
+                                          onArtifactConfigSave={vnode.attrs.onArtifactConfigSave}/>;
       case Sections.DEFAULT_JOB_TIMEOUT:
-        return <JobTimeoutConfigurationWidget defaultJobTimeout={vnode.attrs.defaultJobTimeout}
-                                              onSuccessfulSave={vnode.attrs.onSuccessfulSave}
-                                              onError={vnode.attrs.onError}
+        return <JobTimeoutConfigurationWidget defaultJobTimeoutVM={vnode.attrs.defaultJobTimeoutVM}
                                               onDefaultJobTimeoutSave={vnode.attrs.onDefaultJobTimeoutSave}/>;
     }
   }

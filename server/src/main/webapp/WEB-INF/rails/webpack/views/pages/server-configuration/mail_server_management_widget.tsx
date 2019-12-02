@@ -22,9 +22,6 @@ import {CheckboxField, NumberField, PasswordField, TextField} from "views/compon
 import {Delete, IconGroup} from "views/components/icons";
 import {OperationState} from "views/pages/page_operations";
 import {MailServerManagementAttrs} from "views/pages/server_configuration";
-import {JsonUtils} from "../../../helpers/json_utils";
-import {MailServerCrud} from "../../../models/server-configuration/server_configuartion_crud";
-import {MailServer} from "../../../models/server-configuration/server_configuration";
 import {ButtonGroup, Cancel, Primary} from "../../components/buttons";
 import styles from "./index.scss";
 
@@ -45,14 +42,9 @@ const smtpsHelpText = (
 
 export class MailServerManagementWidget extends MithrilViewComponent<MailServerManagementAttrs> {
   private ajaxOperationMonitor = Stream<OperationState>(OperationState.UNKNOWN);
-  private __mailServer         = Stream<MailServer>();
-
-  oninit(vnode: m.Vnode<MailServerManagementAttrs>) {
-    this.__mailServer = Stream(vnode.attrs.mailServer().clone());
-  }
 
   view(vnode: m.Vnode<MailServerManagementAttrs>) {
-    const mailServer = this.__mailServer();
+    const mailServer = vnode.attrs.mailServerVM().mailServer();
 
     return <div data-test-id="mail-server-management-widget" class={styles.formContainer}>
       <FormBody>
@@ -60,7 +52,7 @@ export class MailServerManagementWidget extends MithrilViewComponent<MailServerM
           <h2>Configure your email server settings</h2>
           <div class={styles.deleteIcon}><IconGroup>
             <Delete data-test-id={"Delete"}
-                    disabled={!vnode.attrs.canDeleteMailServer()}
+                    disabled={!vnode.attrs.mailServerVM().canDeleteMailServer()}
                     onclick={() => vnode.attrs.onMailServerManagementDelete()}>
               Delete</Delete>
           </IconGroup>
@@ -127,35 +119,13 @@ export class MailServerManagementWidget extends MithrilViewComponent<MailServerM
           <ButtonGroup>
             <Cancel data-test-id={"cancel"}
                     ajaxOperationMonitor={this.ajaxOperationMonitor}
-                    onclick={() => this.__mailServer(vnode.attrs.mailServer().clone())}>Cancel</Cancel>
+                    onclick={() => vnode.attrs.mailServerVM().reset()}>Cancel</Cancel>
             <Primary data-test-id={"save"}
                      ajaxOperationMonitor={this.ajaxOperationMonitor}
-                     ajaxOperation={() => this.save(vnode)}
-                     onclick={() => this.save(vnode)}>Save</Primary>
+                     ajaxOperation={() => vnode.attrs.onMailServerManagementSave(vnode.attrs.mailServerVM().mailServer())}>Save</Primary>
           </ButtonGroup>
         </div>
       </FormBody>
     </div>;
-  }
-
-  save(vnode: m.Vnode<MailServerManagementAttrs>) {
-    if (this.__mailServer().isValid()) {
-
-      return MailServerCrud.createOrUpdate(this.__mailServer()).then((result) => {
-        result.do(
-          (successResponse) => {
-            vnode.attrs.onSuccessfulSave("Mail server configuration saved successfully!");
-          },
-          (errorResponse) => {
-            if (result.getStatusCode() === 422 && errorResponse.body) {
-              this.__mailServer(MailServer.fromJSON(JsonUtils.toCamelCasedObject(JSON.parse(errorResponse.body)).data));
-            } else {
-              vnode.attrs.onError(JSON.parse(errorResponse.body!).message);
-            }
-          });
-      });
-    } else {
-      return Promise.resolve();
-    }
   }
 }

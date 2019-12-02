@@ -21,12 +21,12 @@ import {MailServerManagementWidget} from "views/pages/server-configuration/mail_
 import {TestHelper} from "views/pages/spec/test_helper";
 import {ApiResult} from "../../../../helpers/api_request_builder";
 import {MailServerCrud} from "../../../../models/server-configuration/server_configuartion_crud";
+import {MailServerVM} from "../../../../models/server-configuration/server_configuration_vm";
 
 describe("MailServerManagementWidget", () => {
   const helper              = new TestHelper();
   const onDeleteSpy         = jasmine.createSpy("onDelete");
   const onSuccessfulSaveSpy = jasmine.createSpy("onSuccessfulSave");
-  const onErrorSpy          = jasmine.createSpy("onError");
 
   afterEach(helper.unmount.bind(helper));
 
@@ -108,10 +108,10 @@ describe("MailServerManagementWidget", () => {
   });
 
   function mount(mailServer: MailServer, canDeleteMailServer: boolean = true) {
-    helper.mount(() => <MailServerManagementWidget mailServer={Stream(mailServer)}
-                                                   onSuccessfulSave={onSuccessfulSaveSpy}
-                                                   onError={onErrorSpy}
-                                                   canDeleteMailServer={Stream(canDeleteMailServer)}
+    const mailServerVM = new MailServerVM();
+    mailServerVM.sync(mailServer);
+    helper.mount(() => <MailServerManagementWidget mailServerVM={Stream(mailServerVM)}
+                                                   onMailServerManagementSave={onSuccessfulSaveSpy}
                                                    onMailServerManagementDelete={onDeleteSpy}/>);
   }
 });

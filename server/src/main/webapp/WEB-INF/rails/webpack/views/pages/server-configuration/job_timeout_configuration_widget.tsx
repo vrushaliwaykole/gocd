@@ -23,18 +23,12 @@ import {CheckboxField, NumberField} from "views/components/forms/input_fields";
 import {OperationState} from "views/pages/page_operations";
 import styles from "views/pages/server-configuration/index.scss";
 import {JobTimeoutAttrs} from "views/pages/server_configuration";
-import {JobTimeoutManagementCRUD} from "../../../models/server-configuration/server_configuartion_crud";
-import {DefaultJobTimeout} from "../../../models/server-configuration/server_configuration";
 
 export class JobTimeoutConfigurationWidget extends MithrilViewComponent<JobTimeoutAttrs> {
   private ajaxOperationMonitor = Stream<OperationState>(OperationState.UNKNOWN);
-  private __jobTimeout         = Stream<DefaultJobTimeout>();
-
-  oninit(vnode: m.Vnode<JobTimeoutAttrs>) {
-    this.__jobTimeout = Stream(vnode.attrs.defaultJobTimeout().clone());
-  }
 
   view(vnode: m.Vnode<JobTimeoutAttrs>): m.Vnode {
+    const jobTimeout = vnode.attrs.defaultJobTimeoutVM().jobTimeout();
     return <div data-test-id="job-timeout-management-widget" class={styles.formContainer}>
       <FormBody>
         <div class={styles.formHeader}>
@@ -43,42 +37,29 @@ export class JobTimeoutConfigurationWidget extends MithrilViewComponent<JobTimeo
         <div class={styles.formFields}>
           <Form compactForm={true}>
             <CheckboxField dataTestId="checkbox-for-job-timeout"
-                           property={this.__jobTimeout().neverTimeout}
+                           property={jobTimeout.neverTimeout}
                            label={"Never job timeout"}
-                           onchange={() => this.__jobTimeout().defaultJobTimeout(0)}/>
+                           onchange={() => jobTimeout.defaultJobTimeout(0)}/>
             <NumberField label="Default Job timeout"
                          helpText="the job will get cancel after the given minutes of inactivity"
-                         readonly={this.__jobTimeout().neverTimeout()}
-                         property={this.__jobTimeout().defaultJobTimeout}
+                         readonly={jobTimeout.neverTimeout()}
+                         property={jobTimeout.defaultJobTimeout}
                          required={true}
-                         errorText={this.__jobTimeout().errors().errorsForDisplay("defaultJobTimeout")}/>
+                         errorText={jobTimeout.errors().errorsForDisplay("defaultJobTimeout")}/>
           </Form>
         </div>
         <div class={styles.buttons}>
           <ButtonGroup>
             <Cancel data-test-id={"cancel"}
                     ajaxOperationMonitor={this.ajaxOperationMonitor}
-                    onclick={() => this.__jobTimeout(vnode.attrs.defaultJobTimeout().clone())}>Cancel</Cancel>
+                    onclick={() => vnode.attrs.defaultJobTimeoutVM().reset()}>Cancel</Cancel>
             <Primary data-test-id={"save"}
-                     ajaxOperation={() => this.save(vnode)}
-                     ajaxOperationMonitor={this.ajaxOperationMonitor}
-                     onclick={() => this.save(vnode)}>Save</Primary>
+                     ajaxOperation={() => vnode.attrs.onDefaultJobTimeoutSave(jobTimeout)}
+                     ajaxOperationMonitor={this.ajaxOperationMonitor}>Save</Primary>
           </ButtonGroup>
         </div>
       </FormBody>
     </div>;
   }
 
-  save(vnode: m.Vnode<JobTimeoutAttrs>) {
-    if (this.__jobTimeout().isValid()) {
-      return JobTimeoutManagementCRUD.createOrUpdate(this.__jobTimeout()).then((result) => {
-        result.do((() => {
-          vnode.attrs.onSuccessfulSave("Job timeout configuration saved successfully!");
-        }), (errorResponse) => {
-          vnode.attrs.onError(JSON.parse(errorResponse.body!).message);
-        });
-      });
-    }
-    return Promise.resolve();
-  }
 }

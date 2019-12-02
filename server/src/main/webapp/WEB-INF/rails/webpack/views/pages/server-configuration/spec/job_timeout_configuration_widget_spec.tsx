@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import _ from "lodash";
 import m from "mithril";
 import Stream from "mithril/stream";
 import {DefaultJobTimeout} from "models/server-configuration/server_configuration";
 import {TestHelper} from "views/pages/spec/test_helper";
 import {JobTimeoutConfigurationWidget} from "../job_timeout_configuration_widget";
+import {DefaultJobTimeoutVM} from "../../../../models/server-configuration/server_configuration_vm";
 
 describe("defaultJobTimeoutWidget", () => {
   const helper = new TestHelper();
 
   function mount(defaultJobTimeout: DefaultJobTimeout) {
+    const jobTimeoutVM = new DefaultJobTimeoutVM();
+    jobTimeoutVM.sync(defaultJobTimeout);
     helper.mount(() =>
-                   <JobTimeoutConfigurationWidget defaultJobTimeout={Stream(defaultJobTimeout)}
-                                                  onDefaultJobTimeoutSave={() => Promise.resolve()}
-                                                  onSuccessfulSave={_.noop}
-                                                  onError={_.noop}/>);
+                   <JobTimeoutConfigurationWidget defaultJobTimeoutVM={Stream(jobTimeoutVM)}
+                                                  onDefaultJobTimeoutSave={() => Promise.resolve()}/>);
   }
 
   afterEach((done) => helper.unmount(done));

@@ -20,6 +20,7 @@ import Stream from "mithril/stream";
 import {ArtifactConfig} from "models/server-configuration/server_configuration";
 import {TestHelper} from "views/pages/spec/test_helper";
 import {ArtifactsManagementWidget} from "../artifacts_management_widget";
+import {ArtifactConfigVM} from "../../../../models/server-configuration/server_configuration_vm";
 
 describe("ArtifactsManagementWidget", () => {
   const helper      = new TestHelper();
@@ -107,9 +108,9 @@ describe("ArtifactsManagementWidget", () => {
   });
 
   function mount(artifactConfig: ArtifactConfig) {
-    helper.mount(() => <ArtifactsManagementWidget artifactConfig={Stream(artifactConfig)}
-                                                  artifactConfigEtag="some-etag"
-                                                  onSuccessfulSave={_.noop}
-                                                  onError={_.noop}/>);
+    const artifactConfigVM = new ArtifactConfigVM();
+    artifactConfigVM.sync(artifactConfig, "some-etag");
+    helper.mount(() => <ArtifactsManagementWidget artifactConfigVM={Stream(artifactConfigVM)}
+                                                  onArtifactConfigSave={() => Promise.resolve()}/>);
   }
 });

@@ -17,9 +17,10 @@
 import _ from "lodash";
 import m from "mithril";
 import Stream from "mithril/stream";
-import {ArtifactConfig, DefaultJobTimeout, MailServer, SiteUrls} from "models/server-configuration/server_configuration";
+import {ArtifactConfig, MailServer, SiteUrls} from "models/server-configuration/server_configuration";
 import {Sections, ServerConfigurationWidget} from "views/pages/server-configuration/server_configuration_widget";
 import {TestHelper} from "views/pages/spec/test_helper";
+import {ArtifactConfigVM, DefaultJobTimeoutVM, MailServerVM, SiteUrlsVM} from "../../../../models/server-configuration/server_configuration_vm";
 
 describe("ServerConfigurationWidget", () => {
   const helper  = new TestHelper();
@@ -30,21 +31,20 @@ describe("ServerConfigurationWidget", () => {
                  siteUrls: SiteUrls,
                  mailServer: MailServer) {
 
+    const mailServerVM = new MailServerVM();
+    mailServerVM.sync(mailServer);
     helper.mount(() => <ServerConfigurationWidget
       onMailServerManagementDelete={_.noop}
       route={onClick}
       activeConfiguration={activeConfiguration}
-      defaultJobTimeout={Stream(new DefaultJobTimeout(0))}
+      defaultJobTimeoutVM={Stream(new DefaultJobTimeoutVM())}
       onDefaultJobTimeoutSave={() => Promise.resolve()}
-      artifactConfig={Stream(artifactConfig)}
-      artifactConfigEtag={"some-etag"}
-      siteUrls={Stream(siteUrls)}
-      siteUrlsEtag={"site-url-etag"}
-      mailServer={Stream(mailServer)}
-      onSuccessfulSave={_.noop}
-      onError={_.noop}
-      canDeleteMailServer={Stream()}
-    />);
+      artifactConfigVM={Stream(new ArtifactConfigVM())}
+      onArtifactConfigSave={() => Promise.resolve()}
+      onServerManagementSave={() => Promise.resolve()}
+      siteUrlsVM={Stream(new SiteUrlsVM())}
+      onMailServerManagementSave={() => Promise.resolve()}
+      mailServerVM={Stream(mailServerVM)}/>);
   }
 
   afterEach((done) => helper.unmount(done));
