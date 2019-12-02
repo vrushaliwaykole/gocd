@@ -43,7 +43,7 @@ describe("Environment Variables Widget", () => {
     it("should have plain text environment variable fields", () => {
       const plainTextValue = plainTextEnvVar.value();
       expect(helper.byTestId("env-var-name")).toHaveValue(plainTextEnvVar.name());
-      expect(helper.byTestId("env-var-value")).toHaveValue(plainTextValue ? plainTextValue : "");
+      expect(helper.byTestId("env-var-value")).toHaveValue(plainTextValue!);
       expect(helper.byTestId("remove-env-var-btn")).toBeInDOM();
     });
 
