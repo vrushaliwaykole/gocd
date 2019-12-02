@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
+import _ from "lodash";
 import m from "mithril";
+import Stream from "mithril/stream";
 import {ArtifactConfig} from "models/server-configuration/server_configuration";
 import {TestHelper} from "views/pages/spec/test_helper";
 import {ArtifactsManagementWidget} from "../artifacts_management_widget";
 
 describe("ArtifactsManagementWidget", () => {
-  const helper = new TestHelper();
+  const helper      = new TestHelper();
   const onCancelSpy = jasmine.createSpy("onCancel");
-  const onSaveSpy = jasmine.createSpy("onSave");
+  const onSaveSpy   = jasmine.createSpy("onSave");
   afterEach((done) => helper.unmount(done));
 
   it("should render text input field for artifact directory", () => {
@@ -61,18 +63,18 @@ describe("ArtifactsManagementWidget", () => {
   });
 
   it("should enable purgeStartDiskSpace and purgeUptoDiskSpace input fields - when cleanup artifact is selected",
-    () => {
-      const artifactConfig = new ArtifactConfig("foo");
-      mount(artifactConfig);
-      expect(helper.byTestId("form-field-input-allow-auto-cleanup-artifacts")).toHaveProp("checked", false);
+     () => {
+       const artifactConfig = new ArtifactConfig("foo");
+       mount(artifactConfig);
+       expect(helper.byTestId("form-field-input-allow-auto-cleanup-artifacts")).toHaveProp("checked", false);
 
-      expect(helper.byTestId("purge-start-disk-space")).toBeDisabled();
-      expect(helper.byTestId("purge-upto-disk-space")).toBeDisabled();
-      helper.click(helper.byTestId("form-field-input-allow-auto-cleanup-artifacts"));
+       expect(helper.byTestId("purge-start-disk-space")).toBeDisabled();
+       expect(helper.byTestId("purge-upto-disk-space")).toBeDisabled();
+       helper.click(helper.byTestId("form-field-input-allow-auto-cleanup-artifacts"));
 
-      expect(helper.byTestId("purge-start-disk-space")).not.toBeDisabled();
-      expect(helper.byTestId("purge-upto-disk-space")).not.toBeDisabled();
-    });
+       expect(helper.byTestId("purge-start-disk-space")).not.toBeDisabled();
+       expect(helper.byTestId("purge-upto-disk-space")).not.toBeDisabled();
+     });
 
   describe("Cancel", () => {
     it("should render cancel button", () => {
@@ -105,15 +107,9 @@ describe("ArtifactsManagementWidget", () => {
   });
 
   function mount(artifactConfig: ArtifactConfig) {
-    const savePromise   = new Promise((resolve) => {
-      onSaveSpy();
-      resolve();
-    });
-    const cancelPromise = new Promise((resolve) => {
-      onCancelSpy();
-      resolve();
-    });
-    helper.mount(() => <ArtifactsManagementWidget artifactConfig={artifactConfig} onCancel={() => cancelPromise}
-                                                  onArtifactConfigSave={() => savePromise}/>);
+    helper.mount(() => <ArtifactsManagementWidget artifactConfig={Stream(artifactConfig)}
+                                                  artifactConfigEtag="some-etag"
+                                                  onSuccessfulSave={_.noop}
+                                                  onError={_.noop}/>);
   }
 });

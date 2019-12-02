@@ -36,13 +36,13 @@ describe("ServerConfigurationWidget", () => {
       activeConfiguration={activeConfiguration}
       defaultJobTimeout={Stream(new DefaultJobTimeout(0))}
       onDefaultJobTimeoutSave={() => Promise.resolve()}
-      artifactConfig={artifactConfig}
-      onArtifactConfigSave={() => Promise.resolve()}
-      onServerManagementSave={() => Promise.resolve()}
-      siteUrls={siteUrls}
-      onMailServerManagementSave={() => Promise.resolve()}
+      artifactConfig={Stream(artifactConfig)}
+      artifactConfigEtag={"some-etag"}
+      siteUrls={Stream(siteUrls)}
+      siteUrlsEtag={"site-url-etag"}
       mailServer={Stream(mailServer)}
-      onCancel={() => Promise.resolve()}
+      onSuccessfulSave={_.noop}
+      onError={_.noop}
       canDeleteMailServer={Stream()}
     />);
   }

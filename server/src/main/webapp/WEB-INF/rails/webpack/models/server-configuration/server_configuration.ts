@@ -42,6 +42,10 @@ export class SiteUrls extends ValidatableMixin {
   static fromJSON(data: SiteUrlsJSON) {
     return new SiteUrls(data.site_url, data.secure_site_url);
   }
+
+  clone() {
+    return new SiteUrls(this.siteUrl(), this.secureSiteUrl());
+  }
 }
 
 export interface PurgeSettingsJSON {
@@ -131,6 +135,10 @@ export class ArtifactConfig extends ValidatableMixin {
     }
     return artifactConfigJSON;
   }
+
+  clone() {
+    return ArtifactConfig.fromJSON(this.toJSON());
+  }
 }
 
 interface DefaultJobTimeoutJSON {
@@ -168,6 +176,12 @@ export class DefaultJobTimeout extends ValidatableMixin {
     }
 
     return valid;
+  }
+
+  clone() {
+    const defaultJobTimeout = new DefaultJobTimeout(this.defaultJobTimeout());
+    defaultJobTimeout.neverTimeout(this.neverTimeout());
+    return defaultJobTimeout;
   }
 }
 
@@ -256,6 +270,13 @@ export class MailServer extends ValidatableMixin {
     }
 
     return serialized;
+  }
+
+  clone() {
+    return new MailServer(this.hostname(), this.port(), this.username(),
+                          this.password().isPlain() ? this.password().value() : undefined,
+                          this.password().isSecure() ? this.password().value() : undefined,
+                          this.tls(), this.senderEmail(), this.adminEmail());
   }
 
 }

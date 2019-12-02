@@ -21,15 +21,23 @@ import {ButtonGroup, Cancel, Primary} from "views/components/buttons";
 import {Form, FormBody} from "views/components/forms/form";
 import {CheckboxField, NumberField, TextField} from "views/components/forms/input_fields";
 import {ArtifactManagementAttrs} from "views/pages/server_configuration";
+import {JsonUtils} from "../../../helpers/json_utils";
+import {ArtifactConfigCRUD} from "../../../models/server-configuration/server_configuartion_crud";
+import {ArtifactConfig} from "../../../models/server-configuration/server_configuration";
 import {OperationState} from "../page_operations";
 import styles from "./index.scss";
 
 export class ArtifactsManagementWidget extends MithrilViewComponent<ArtifactManagementAttrs> {
   private ajaxOperationMonitor = Stream<OperationState>(OperationState.UNKNOWN);
+  private __artifactConfig     = Stream<ArtifactConfig>();
+
+  oninit(vnode: m.Vnode<ArtifactManagementAttrs>) {
+    this.__artifactConfig = Stream(vnode.attrs.artifactConfig().clone());
+  }
 
   view(vnode: m.Vnode<ArtifactManagementAttrs>) {
-    const purgeStartDiskSpace = vnode.attrs.artifactConfig.purgeSettings().purgeStartDiskSpace;
-    const purgeUptoDiskSpace  = vnode.attrs.artifactConfig.purgeSettings().purgeUptoDiskSpace;
+    const purgeStartDiskSpace = this.__artifactConfig().purgeSettings().purgeStartDiskSpace;
+    const purgeUptoDiskSpace  = this.__artifactConfig().purgeSettings().purgeUptoDiskSpace;
 
     return <div data-test-id="artifacts-management-widget" class={styles.formContainer}>
       <FormBody>
@@ -39,14 +47,14 @@ export class ArtifactsManagementWidget extends MithrilViewComponent<ArtifactMana
         <div class={styles.formFields}>
           <Form compactForm={true}>
             <TextField label="Artifacts Directory Location"
-                       property={vnode.attrs.artifactConfig.artifactsDir}
+                       property={this.__artifactConfig().artifactsDir}
                        required={true}
-                       errorText={vnode.attrs.artifactConfig.errors().errorsForDisplay("artifactsDir")}/>
-            <CheckboxField property={vnode.attrs.artifactConfig.purgeSettings().cleanupArtifact}
+                       errorText={this.__artifactConfig().errors().errorsForDisplay("artifactsDir")}/>
+            <CheckboxField property={this.__artifactConfig().purgeSettings().cleanupArtifact}
                            label={"Allow auto cleanup artifacts"}
                            onchange={() => {
-                             vnode.attrs.artifactConfig.purgeSettings().purgeStartDiskSpace(undefined);
-                             vnode.attrs.artifactConfig.purgeSettings().purgeUptoDiskSpace(undefined);
+                             this.__artifactConfig().purgeSettings().purgeStartDiskSpace(undefined);
+                             this.__artifactConfig().purgeSettings().purgeUptoDiskSpace(undefined);
                            }}
                            value={true}
             />
@@ -54,34 +62,52 @@ export class ArtifactsManagementWidget extends MithrilViewComponent<ArtifactMana
               <NumberField property={purgeStartDiskSpace}
                            label={"Trigger when disk space is"}
                            helpText={"Auto cleanup of artifacts will start when available disk space is less than or equal to the specified limit"}
-                           readonly={!vnode.attrs.artifactConfig.cleanupArtifact()}
-                           errorText={vnode.attrs.artifactConfig.purgeSettings()
-                                           .errors()
-                                           .errorsForDisplay("purgeStartDiskSpace")}
+                           readonly={!this.__artifactConfig().cleanupArtifact()}
+                           errorText={this.__artifactConfig().purgeSettings()
+                                          .errors()
+                                          .errorsForDisplay("purgeStartDiskSpace")}
                            dataTestId={"purge-start-disk-space"}/>
               <NumberField property={purgeUptoDiskSpace}
                            helpText={"Auto cleanup artifacts until the specified disk space is available"}
                            label={"Target disk space"}
-                           readonly={!vnode.attrs.artifactConfig.cleanupArtifact()}
-                           errorText={vnode.attrs.artifactConfig.purgeSettings()
-                                           .errors()
-                                           .errorsForDisplay("purgeUptoDiskSpace")}
+                           readonly={!this.__artifactConfig().cleanupArtifact()}
+                           errorText={this.__artifactConfig().purgeSettings()
+                                          .errors()
+                                          .errorsForDisplay("purgeUptoDiskSpace")}
                            dataTestId={"purge-upto-disk-space"}/>
             </div>
           </Form>
         </div>
         <div class={styles.buttons}>
           <ButtonGroup>
-            <Cancel data-test-id={"cancel"} ajaxOperationMonitor={this.ajaxOperationMonitor} onclick={vnode.attrs.onCancel}>Cancel</Cancel>
-            <Primary data-test-id={"save"} ajaxOperationMonitor={this.ajaxOperationMonitor} onclick={() => {
-              if (vnode.attrs.artifactConfig.isValid()) {
-                return vnode.attrs.onArtifactConfigSave(vnode.attrs.artifactConfig);
-              }
-              return Promise.resolve();
-            }}>Save</Primary>
+            <Cancel data-test-id={"cancel"} ajaxOperationMonitor={this.ajaxOperationMonitor} onclick={() => {
+              this.__artifactConfig(vnode.attrs.artifactConfig().clone());
+            }}>Cancel</Cancel>
+            <Primary data-test-id={"save"} ajaxOperationMonitor={this.ajaxOperationMonitor} onclick={() => this.save((vnode))}>Save</Primary>
           </ButtonGroup>
         </div>
       </FormBody>
     </div>;
+  }
+
+  save(vnode: m.Vnode<ArtifactManagementAttrs>) {
+    if (this.__artifactConfig().isValid()) {
+
+      return ArtifactConfigCRUD.put(this.__artifactConfig(), vnode.attrs.artifactConfigEtag).then((result) => {
+        result.do(
+          (successResponse) => {
+            vnode.attrs.onSuccessfulSave("Mail server configuration saved successfully!");
+          },
+          (errorResponse) => {
+            if (result.getStatusCode() === 422 && errorResponse.body) {
+              this.__artifactConfig(ArtifactConfig.fromJSON(JsonUtils.toCamelCasedObject(JSON.parse(errorResponse.body)).data));
+            } else {
+              vnode.attrs.onError(JSON.parse(errorResponse.body!).message);
+            }
+          });
+      });
+    } else {
+      return Promise.resolve();
+    }
   }
 }

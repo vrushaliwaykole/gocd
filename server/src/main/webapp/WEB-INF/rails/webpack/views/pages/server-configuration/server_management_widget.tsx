@@ -20,11 +20,18 @@ import {ButtonGroup, Cancel, Primary} from "views/components/buttons";
 import {Form, FormBody} from "views/components/forms/form";
 import {TextField} from "views/components/forms/input_fields";
 import {ServerManagementAttrs} from "views/pages/server_configuration";
+import {ServerManagementCRUD} from "../../../models/server-configuration/server_configuartion_crud";
+import {SiteUrls} from "../../../models/server-configuration/server_configuration";
 import {OperationState} from "../page_operations";
 import styles from "./index.scss";
 
 export class ServerManagementWidget extends MithrilViewComponent<ServerManagementAttrs> {
   private ajaxOperationMonitor = Stream<OperationState>(OperationState.UNKNOWN);
+  private __siteUrls           = Stream<SiteUrls>();
+
+  oninit(vnode: m.Vnode<ServerManagementAttrs>) {
+    this.__siteUrls = Stream(vnode.attrs.siteUrls().clone());
+  }
 
   view(vnode: m.Vnode<ServerManagementAttrs>) {
     const siteUrlsDocsLink      = "installation/configuring_server_details.html#configure-site-urls";
@@ -40,26 +47,41 @@ export class ServerManagementWidget extends MithrilViewComponent<ServerManagemen
         <div class={styles.formFields}>
           <Form compactForm={true}>
             <TextField label="Site URL"
-                       property={vnode.attrs.siteUrls.siteUrl}
+                       property={this.__siteUrls().siteUrl}
                        helpText={siteUrlHelpText}
                        docLink={siteUrlsDocsLink}
-                       errorText={vnode.attrs.siteUrls.errors().errorsForDisplay("siteUrl")}/>
+                       errorText={this.__siteUrls().errors().errorsForDisplay("siteUrl")}/>
             <TextField label="Secure Site URL"
-                       property={vnode.attrs.siteUrls.secureSiteUrl}
-                       errorText={vnode.attrs.siteUrls.errors().errorsForDisplay("secureSiteUrl")}
+                       property={this.__siteUrls().secureSiteUrl}
+                       errorText={this.__siteUrls().errors().errorsForDisplay("secureSiteUrl")}
                        helpText={serverSiteUrlHelpText}
                        docLink={siteUrlsDocsLink}/>
           </Form>
         </div>
         <div class={styles.buttons}>
           <ButtonGroup>
-            <Cancel data-test-id={"cancel"} onclick={() => vnode.attrs.onCancel()} ajaxOperation={vnode.attrs.onCancel}
+            <Cancel data-test-id={"cancel"} onclick={() => {
+              this.__siteUrls(vnode.attrs.siteUrls().clone());
+            }}
                     ajaxOperationMonitor={this.ajaxOperationMonitor}>Cancel</Cancel>
-            <Primary data-test-id={"save"} onclick={() => vnode.attrs.onServerManagementSave(vnode.attrs.siteUrls)} ajaxOperation={() => vnode.attrs.onServerManagementSave(vnode.attrs.siteUrls)}
+            <Primary data-test-id={"save"} onclick={() => this.save(vnode)} ajaxOperation={() => this.save(vnode)}
                      ajaxOperationMonitor={this.ajaxOperationMonitor}>Save</Primary>
           </ButtonGroup>
         </div>
       </FormBody>
     </div>;
+  }
+
+  save(vnode: m.Vnode<ServerManagementAttrs>) {
+    if (this.__siteUrls().isValid()) {
+      return ServerManagementCRUD.put(this.__siteUrls(), vnode.attrs.siteUrlsEtag).then((result) => {
+        result.do((successResponse) => {
+          vnode.attrs.onSuccessfulSave("Site urls saved successfully");
+        }, (errorResponse) => {
+          vnode.attrs.onError(JSON.parse(errorResponse.body!).message);
+        });
+      });
+    }
+    return Promise.resolve();
   }
 }

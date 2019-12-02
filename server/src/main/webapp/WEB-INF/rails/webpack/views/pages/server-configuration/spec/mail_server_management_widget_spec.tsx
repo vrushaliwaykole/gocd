@@ -19,12 +19,14 @@ import Stream from "mithril/stream";
 import {MailServer} from "models/server-configuration/server_configuration";
 import {MailServerManagementWidget} from "views/pages/server-configuration/mail_server_management_widget";
 import {TestHelper} from "views/pages/spec/test_helper";
+import {ApiResult} from "../../../../helpers/api_request_builder";
+import {MailServerCrud} from "../../../../models/server-configuration/server_configuartion_crud";
 
 describe("MailServerManagementWidget", () => {
-  const helper      = new TestHelper();
-  const onCancelSpy = jasmine.createSpy("onCancel");
-  const onDeleteSpy = jasmine.createSpy("onDelete");
-  const onSaveSpy   = jasmine.createSpy("onSave");
+  const helper              = new TestHelper();
+  const onDeleteSpy         = jasmine.createSpy("onDelete");
+  const onSuccessfulSaveSpy = jasmine.createSpy("onSuccessfulSave");
+  const onErrorSpy          = jasmine.createSpy("onError");
 
   afterEach(helper.unmount.bind(helper));
 
@@ -49,20 +51,47 @@ describe("MailServerManagementWidget", () => {
     expect(helper.byTestId("save")).toHaveText("Save");
   });
 
-  it("should call onCancel", () => {
-    mount(new MailServer());
+  it("should reset field values on click of cancel", () => {
+    mount(new MailServer("hostname", 1234, "bob", "password", undefined, true, "sender@foo.com", "admin@foo.com"));
 
-    helper.oninput(helper.byTestId("form-field-input-smtp-hostname"), "foobar");
+    helper.oninput(helper.byTestId("form-field-input-smtp-hostname"), "some-hostname");
+    helper.oninput(helper.byTestId("form-field-input-smtp-port"), "3000");
+    helper.oninput(helper.byTestId("form-field-input-smtp-username"), "another_user");
+    helper.oninput(helper.byTestId("form-field-input-smtp-password"), "some-password");
+    helper.clickByTestId("form-field-input-use-smtps");
+    helper.oninput(helper.byTestId("form-field-input-send-email-using-address"), "some-email");
+    helper.oninput(helper.byTestId("form-field-input-administrator-email"), "another_admin@foo.com");
+
     helper.clickByTestId("cancel");
-    expect(onCancelSpy).toHaveBeenCalled();
+
+    expect(helper.byTestId("form-field-input-smtp-hostname")).toHaveValue("hostname");
+    expect(helper.byTestId("form-field-input-smtp-port")).toHaveValue("1234");
+    expect(helper.byTestId("form-field-input-smtp-username")).toHaveValue("bob");
+    expect(helper.byTestId("form-field-input-smtp-password")).toHaveValue("password");
+    expect(helper.byTestId("form-field-input-use-smtps")).toBeChecked();
+    expect(helper.byTestId("form-field-input-send-email-using-address")).toHaveValue("sender@foo.com");
+    expect(helper.byTestId("form-field-input-administrator-email")).toHaveValue("admin@foo.com");
+
   });
 
-  it("should call onSave", () => {
-    mount(new MailServer());
+  it("should call `onSuccessfulSave` on saving valid mail server configuration", (done) => {
+    const mailServer = new MailServer("hostname", 1234, "bob", "password", undefined, true, "sender@foo.com", "admin@foo.com");
 
-    helper.oninput(helper.byTestId("form-field-input-smtp-hostname"), "foobar");
-    helper.click(helper.byTestId("save"));
-    expect(onSaveSpy).toHaveBeenCalled();
+    const promise = new Promise<ApiResult<MailServer>>((resolve) => {
+      const apiResult = ApiResult.success("", 200, new Map()).map(() => mailServer);
+      resolve(apiResult);
+      setTimeout(() => {
+        expect(onSuccessfulSaveSpy).toHaveBeenCalled();
+        done();
+      }, 100);
+    });
+
+    spyOn(MailServerCrud, "createOrUpdate").and.callFake(() => {
+      return promise;
+    });
+
+    mount(mailServer, true);
+    helper.clickByTestId("save");
   });
 
   it("should call onDelete", () => {
@@ -79,19 +108,10 @@ describe("MailServerManagementWidget", () => {
   });
 
   function mount(mailServer: MailServer, canDeleteMailServer: boolean = true) {
-    const savePromise   = new Promise((resolve) => {
-      onSaveSpy();
-      resolve();
-    });
-    const cancelPromise = new Promise((resolve) => {
-      onCancelSpy();
-      resolve();
-    });
-
     helper.mount(() => <MailServerManagementWidget mailServer={Stream(mailServer)}
+                                                   onSuccessfulSave={onSuccessfulSaveSpy}
+                                                   onError={onErrorSpy}
                                                    canDeleteMailServer={Stream(canDeleteMailServer)}
-                                                   onMailServerManagementSave={() => savePromise}
-                                                   onMailServerManagementDelete={onDeleteSpy}
-                                                   onCancel={() => cancelPromise}/>);
+                                                   onMailServerManagementDelete={onDeleteSpy}/>);
   }
 });

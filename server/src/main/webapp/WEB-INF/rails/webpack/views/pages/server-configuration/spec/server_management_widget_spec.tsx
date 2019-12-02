@@ -15,15 +15,16 @@
  */
 
 import {docsUrl} from "gen/gocd_version";
+import _ from "lodash";
 import m from "mithril";
+import Stream from "mithril/stream";
 import {SiteUrls} from "models/server-configuration/server_configuration";
 import {ServerManagementWidget} from "views/pages/server-configuration/server_management_widget";
 import {TestHelper} from "views/pages/spec/test_helper";
 
-describe("ServerManageMentWidget", () => {
-  const helper      = new TestHelper();
-  const onCancelSpy = jasmine.createSpy("onCancel");
-  const onSaveSpy   = jasmine.createSpy("onSave");
+describe("ServerManagementWidget", () => {
+  const helper    = new TestHelper();
+  const onSaveSpy = jasmine.createSpy("onSave");
   afterEach((done) => helper.unmount(done));
 
   it("should render input boxes for site url and secure site url", () => {
@@ -65,8 +66,8 @@ describe("ServerManageMentWidget", () => {
 
     const secureSiteUrlId              = helper.byTestId("form-field-input-secure-site-url").getAttribute("id");
     const secureSiteUrlHelpTextElement = helper.q(`#${secureSiteUrlId}-help-text`);
-    const docsLinkForSiteUrl             = helper.q("a", helper.q(`#${siteUrlId}-help-text`));
-    const docsLinkForSecureSiteUrl       = helper.q("a", helper.q(`#${secureSiteUrlId}-help-text`));
+    const docsLinkForSiteUrl           = helper.q("a", helper.q(`#${siteUrlId}-help-text`));
+    const docsLinkForSecureSiteUrl     = helper.q("a", helper.q(`#${secureSiteUrlId}-help-text`));
 
     expect(siteUrlHelpTextElement).toContainText(helpTextForSiteUrl);
     expect(docsLinkForSiteUrl).toHaveAttr("href", docsLink);
@@ -93,26 +94,21 @@ describe("ServerManageMentWidget", () => {
     expect(onSaveSpy).toHaveBeenCalled();
   });
 
-  it("should call 'onCancel'", () => {
+  it("should reset the values for `siteUrl` and `secureSiteUrl`", () => {
     const siteUrls = new SiteUrls("http://foo.com", "https://securefoo.com");
     mount(siteUrls);
 
     helper.oninput(helper.byTestId("form-field-input-site-url"), "foo");
+    helper.oninput(helper.byTestId("form-field-input-secure-site-url"), "bar");
     helper.clickByTestId("cancel");
 
-    expect(onCancelSpy).toHaveBeenCalled();
+    expect(helper.byTestId("form-field-input-site-url")).toHaveValue("http://foo.com");
+    expect(helper.byTestId("form-field-input-secure-site-url")).toHaveValue("https://securefoo.com");
   });
 
   function mount(siteUrls: SiteUrls) {
-    const savePromise   = new Promise((resolve) => {
-      onSaveSpy();
-      resolve();
-    });
-    const cancelPromise = new Promise((resolve) => {
-      onCancelSpy();
-      resolve();
-    });
-    helper.mount(() => <ServerManagementWidget siteUrls={siteUrls} onCancel={() => cancelPromise}
-                                               onServerManagementSave={() => savePromise}/>);
+    helper.mount(() => <ServerManagementWidget siteUrls={Stream(siteUrls)} siteUrlsEtag="some-etag"
+                                               onSuccessfulSave={_.noop}
+                                               onError={_.noop}/>);
   }
 });
