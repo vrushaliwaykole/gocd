@@ -18,7 +18,7 @@ import {JsonUtils} from "helpers/json_utils";
 import m from "mithril";
 import Stream from "mithril/stream";
 import {ArtifactConfigCRUD, JobTimeoutManagementCRUD, MailServerCrud, ServerManagementCRUD} from "models/server-configuration/server_configuartion_crud";
-import {ArtifactConfig, DefaultJobTimeout, MailServer} from "models/server-configuration/server_configuration";
+import {ArtifactConfig, DefaultJobTimeout, MailServer, SiteUrls} from "models/server-configuration/server_configuration";
 import {FlashMessage, MessageType} from "views/components/flash_message";
 import {DeleteConfirmModal} from "views/components/modal/delete_confirm_modal";
 import {Page, PageState} from "views/pages/page";
@@ -26,7 +26,7 @@ import {Sections, ServerConfigurationWidget} from "views/pages/server-configurat
 import {ArtifactConfigVM, DefaultJobTimeoutVM, MailServerVM, SiteUrlsVM} from "../../models/server-configuration/server_configuration_vm";
 
 export interface ServerManagementAttrs {
-  onServerManagementSave: () => Promise<any>;
+  onServerManagementSave: () => Promise<SiteUrls | void>;
   siteUrlsVM: Stream<SiteUrlsVM>;
 }
 

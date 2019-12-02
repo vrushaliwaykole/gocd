@@ -186,7 +186,7 @@ export class DefaultJobTimeout extends ValidatableMixin {
   }
 }
 
-interface MailServerJSON {
+export interface MailServerJSON {
   hostname: string;
   port: number;
   username: string;

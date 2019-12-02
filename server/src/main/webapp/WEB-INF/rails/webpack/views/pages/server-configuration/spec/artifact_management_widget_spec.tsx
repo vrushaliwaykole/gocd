@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-import _ from "lodash";
 import m from "mithril";
 import Stream from "mithril/stream";
 import {ArtifactConfig} from "models/server-configuration/server_configuration";
 import {TestHelper} from "views/pages/spec/test_helper";
-import {ArtifactsManagementWidget} from "../artifacts_management_widget";
 import {ArtifactConfigVM} from "../../../../models/server-configuration/server_configuration_vm";
+import {ArtifactsManagementWidget} from "../artifacts_management_widget";
 
 describe("ArtifactsManagementWidget", () => {
-  const helper      = new TestHelper();
-  const onCancelSpy = jasmine.createSpy("onCancel");
-  const onSaveSpy   = jasmine.createSpy("onSave");
+  const helper    = new TestHelper();
+  const onSaveSpy = jasmine.createSpy("onSave");
   afterEach((done) => helper.unmount(done));
 
   it("should render text input field for artifact directory", () => {
@@ -88,7 +86,7 @@ describe("ArtifactsManagementWidget", () => {
       mount(artifactConfig);
       helper.oninput(helper.byTestId("form-field-input-artifacts-directory-location"), "foobar");
       helper.clickByTestId("cancel");
-      expect(onCancelSpy).toHaveBeenCalled();
+      expect(helper.byTestId("form-field-input-artifacts-directory-location")).toHaveValue("foo");
     });
   });
 
@@ -108,9 +106,14 @@ describe("ArtifactsManagementWidget", () => {
   });
 
   function mount(artifactConfig: ArtifactConfig) {
+    const savePromise: Promise<ArtifactConfig> = new Promise((resolve) => {
+      onSaveSpy();
+      resolve();
+    });
+
     const artifactConfigVM = new ArtifactConfigVM();
     artifactConfigVM.sync(artifactConfig, "some-etag");
     helper.mount(() => <ArtifactsManagementWidget artifactConfigVM={Stream(artifactConfigVM)}
-                                                  onArtifactConfigSave={() => Promise.resolve()}/>);
+                                                  onArtifactConfigSave={() => savePromise}/>);
   }
 });

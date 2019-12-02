@@ -18,15 +18,17 @@ import m from "mithril";
 import Stream from "mithril/stream";
 import {DefaultJobTimeout} from "models/server-configuration/server_configuration";
 import {TestHelper} from "views/pages/spec/test_helper";
-import {JobTimeoutConfigurationWidget} from "../job_timeout_configuration_widget";
 import {DefaultJobTimeoutVM} from "../../../../models/server-configuration/server_configuration_vm";
+import {JobTimeoutConfigurationWidget} from "../job_timeout_configuration_widget";
 
 describe("defaultJobTimeoutWidget", () => {
   const helper = new TestHelper();
+  let jobTimeoutVM: DefaultJobTimeoutVM;
 
   function mount(defaultJobTimeout: DefaultJobTimeout) {
-    const jobTimeoutVM = new DefaultJobTimeoutVM();
+    jobTimeoutVM = new DefaultJobTimeoutVM();
     jobTimeoutVM.sync(defaultJobTimeout);
+
     helper.mount(() =>
                    <JobTimeoutConfigurationWidget defaultJobTimeoutVM={Stream(jobTimeoutVM)}
                                                   onDefaultJobTimeoutSave={() => Promise.resolve()}/>);
@@ -68,8 +70,10 @@ describe("defaultJobTimeoutWidget", () => {
 
   it("should show error text", () => {
     const defaultJobTimeout = new DefaultJobTimeout(0);
-    defaultJobTimeout.errors().add("defaultJobTimeout", "some-error");
     mount(defaultJobTimeout);
+
+    jobTimeoutVM.jobTimeout().errors().add("defaultJobTimeout", "some-error");
+    m.redraw.sync();
 
     const inputId = helper.byTestId("form-field-input-default-job-timeout").getAttribute("id");
     expect(helper.q(`#${inputId}-error-text`)).toHaveText("some-error.");

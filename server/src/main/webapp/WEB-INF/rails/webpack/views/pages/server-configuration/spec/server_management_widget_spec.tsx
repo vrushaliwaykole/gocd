@@ -15,7 +15,6 @@
  */
 
 import {docsUrl} from "gen/gocd_version";
-import _ from "lodash";
 import m from "mithril";
 import Stream from "mithril/stream";
 import {SiteUrls} from "models/server-configuration/server_configuration";
@@ -108,9 +107,14 @@ describe("ServerManagementWidget", () => {
   });
 
   function mount(siteUrls: SiteUrls) {
+    const savePromise: Promise<SiteUrls> = new Promise((resolve) => {
+      onSaveSpy();
+      resolve();
+    });
+
     const siteUrlsVM = new SiteUrlsVM();
     siteUrlsVM.sync(siteUrls, "some-etag");
-    helper.mount(() => <ServerManagementWidget siteUrlsVM={Stream(siteUrlsVM)}
-                                               onServerManagementSave={() => Promise.resolve()}/>);
+
+    helper.mount(() => <ServerManagementWidget siteUrlsVM={Stream(siteUrlsVM)} onServerManagementSave={() => savePromise}/>);
   }
 });

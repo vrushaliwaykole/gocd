@@ -19,8 +19,6 @@ import Stream from "mithril/stream";
 import {MailServer} from "models/server-configuration/server_configuration";
 import {MailServerManagementWidget} from "views/pages/server-configuration/mail_server_management_widget";
 import {TestHelper} from "views/pages/spec/test_helper";
-import {ApiResult} from "../../../../helpers/api_request_builder";
-import {MailServerCrud} from "../../../../models/server-configuration/server_configuartion_crud";
 import {MailServerVM} from "../../../../models/server-configuration/server_configuration_vm";
 
 describe("MailServerManagementWidget", () => {
@@ -74,24 +72,14 @@ describe("MailServerManagementWidget", () => {
 
   });
 
-  it("should call `onSuccessfulSave` on saving valid mail server configuration", (done) => {
+  it("should call `onSuccessfulSave` on saving valid mail server configuration", () => {
     const mailServer = new MailServer("hostname", 1234, "bob", "password", undefined, true, "sender@foo.com", "admin@foo.com");
 
-    const promise = new Promise<ApiResult<MailServer>>((resolve) => {
-      const apiResult = ApiResult.success("", 200, new Map()).map(() => mailServer);
-      resolve(apiResult);
-      setTimeout(() => {
-        expect(onSuccessfulSaveSpy).toHaveBeenCalled();
-        done();
-      }, 100);
-    });
-
-    spyOn(MailServerCrud, "createOrUpdate").and.callFake(() => {
-      return promise;
-    });
-
     mount(mailServer, true);
+
     helper.clickByTestId("save");
+
+    expect(onSuccessfulSaveSpy).toHaveBeenCalled();
   });
 
   it("should call onDelete", () => {
@@ -108,10 +96,16 @@ describe("MailServerManagementWidget", () => {
   });
 
   function mount(mailServer: MailServer, canDeleteMailServer: boolean = true) {
+    const savePromise: Promise<MailServer> = new Promise((resolve) => {
+      onSuccessfulSaveSpy();
+      resolve();
+    });
+
     const mailServerVM = new MailServerVM();
     mailServerVM.sync(mailServer);
+    mailServerVM.canDeleteMailServer(canDeleteMailServer);
     helper.mount(() => <MailServerManagementWidget mailServerVM={Stream(mailServerVM)}
-                                                   onMailServerManagementSave={onSuccessfulSaveSpy}
+                                                   onMailServerManagementSave={() => savePromise}
                                                    onMailServerManagementDelete={onDeleteSpy}/>);
   }
 });
