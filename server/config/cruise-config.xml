@@ -12,9 +12,21 @@
       </authConfigs>
       <roles>
         <role name="xyz" />
+        <role name="role">
+          <users>
+            <user>jez</user>
+          </users>
+          <policy>
+            <allow action="view" type="environment">*</allow>
+          </policy>
+        </role>
+        <role name="aAzAZ">
+          <policy>
+            <deny action="view" type="*">*</deny>
+          </policy>
+        </role>
       </roles>
       <admins>
-        <user>jez</user>
         <user>admin</user>
       </admins>
     </security>
@@ -23,22 +35,29 @@
       <artifactsDir>artifacts</artifactsDir>
     </artifacts>
   </server>
-  <pipelines group="first">
-    <authorization>
-      <view>
-        <user>operate</user>
-      </view>
-      <admins>
-        <user>operate</user>
-      </admins>
-    </authorization>
-    <pipeline name="up42">
+  <config-repos>
+    <config-repo pluginId="json.config.plugin" id="test">
+      <git url="https://github.com/tomzo/gocd-json-config-example.git" />
+      <configuration>
+        <property>
+          <key>pipeline_pattern</key>
+          <value>*.gopipeline.json</value>
+        </property>
+        <property>
+          <key>environment_pattern</key>
+          <value>*.goenvironment.json</value>
+        </property>
+      </configuration>
+    </config-repo>
+  </config-repos>
+  <pipelines group="blah-something">
+    <pipeline name="foo-not-in-config-repo">
       <materials>
-        <git url="test-repo" />
+        <git url="https://github.com/tomzo/gocd-json-config-example.git" />
       </materials>
-      <stage name="up42_stage">
+      <stage name="foo-not-in-config-repo">
         <jobs>
-          <job name="up42_job">
+          <job name="foo-not-in-config-repo">
             <tasks>
               <exec command="ls" />
             </tasks>
@@ -47,4 +66,121 @@
       </stage>
     </pipeline>
   </pipelines>
+  <pipelines group="blah">
+    <pipeline name="test-for-CR">
+      <materials>
+        <git url="https://github.com/tomzo/gocd-json-config-example.git" />
+      </materials>
+      <stage name="test-for-CR">
+        <jobs>
+          <job name="test-for-CR">
+            <tasks>
+              <exec command="ls" />
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <pipelines group="bar-2">
+    <authorization>
+      <view>
+        <user>admin</user>
+        <role>xyz</role>
+      </view>
+      <operate>
+        <user>admin</user>
+      </operate>
+      <admins>
+        <user>admin</user>
+      </admins>
+    </authorization>
+    <pipeline name="asdasd">
+      <materials>
+        <git url="https://github.com/tomzo/gocd-json-config-example.git" />
+      </materials>
+      <stage name="asdasdasd">
+        <jobs>
+          <job name="asdasd">
+            <environmentvariables>
+              <variable name="ccccccc">
+                <value />
+              </variable>
+            </environmentvariables>
+            <tasks>
+              <exec command="asdasdasd" />
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="foo">
+      <materials>
+        <git url="https://github.com/tomzo/gocd-json-config-example.git" />
+      </materials>
+      <stage name="sdd">
+        <jobs>
+          <job name="d">
+            <environmentvariables>
+              <variable name="v">
+                <value>c</value>
+              </variable>
+              <variable name="a">
+                <value />
+              </variable>
+            </environmentvariables>
+            <tasks>
+              <exec command="d" />
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="asdf">
+      <materials>
+        <git url="https://github.com/tomzo/gocd-json-config-example.git" />
+      </materials>
+      <stage name="asdf">
+        <jobs>
+          <job name="asdf">
+            <tasks>
+              <exec command="ls" />
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <pipelines group="blah-something-1" />
+  <templates>
+    <pipeline name="foo">
+      <stage name="defaultStage">
+        <jobs>
+          <job name="defaultJob" />
+        </jobs>
+      </stage>
+    </pipeline>
+  </templates>
+  <environments>
+    <environment name="environment1" />
+    <environment name="environment2" />
+    <environment name="environment3" />
+    <environment name="environment4">
+      <pipelines>
+        <pipeline name="asdf" />
+      </pipelines>
+    </environment>
+    <environment name="environment6" />
+    <environment name="environment7" />
+    <environment name="environment8" />
+    <environment name="environment9" />
+    <environment name="environment10" />
+    <environment name="environment11" />
+    <environment name="environment12" />
+    <environment name="environment13" />
+    <environment name="environment14" />
+    <environment name="environment15" />
+    <environment name="some-environment" />
+    <environment name="dev" />
+  </environments>
 </cruise>

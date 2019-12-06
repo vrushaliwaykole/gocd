@@ -58,6 +58,7 @@ public class PipelineConfigsServiceTest {
     private Username validUser;
     private HttpLocalizedOperationResult result;
     private CruiseConfig cruiseConfig;
+    private PipelineConfigs pipelineConfigsFromServer;
 
     @Before
     public void setUp() {
@@ -69,7 +70,7 @@ public class PipelineConfigsServiceTest {
         validUser = new Username(new CaseInsensitiveString("validUser"));
         service = new PipelineConfigsService(configCache, registry, goConfigService, securityService);
         result = new HttpLocalizedOperationResult();
-
+        pipelineConfigsFromServer = new BasicPipelineConfigs();
         cruiseConfig = new BasicCruiseConfig();
         ReflectionUtil.setField(cruiseConfig, "md5", "md5");
     }
@@ -281,31 +282,31 @@ public class PipelineConfigsServiceTest {
         assertThat(result.message(), is("Someone has modified the configuration and your changes are in conflict. Please review, amend and retry."));
     }
 
-	@Test
-	public void shouldGetPipelineGroupsForUser() {
-		PipelineConfig pipelineInGroup1 = new PipelineConfig();
-		PipelineConfigs group1 = new BasicPipelineConfigs(pipelineInGroup1);
-		group1.setGroup("group1");
-		PipelineConfig pipelineInGroup2 = new PipelineConfig();
-		PipelineConfigs group2 = new BasicPipelineConfigs(pipelineInGroup2);
-		group2.setGroup("group2");
-		when(goConfigService.groups()).thenReturn(new PipelineGroups(group1, group2));
-		String user = "looser";
-		when(securityService.hasViewPermissionForGroup(user, "group1")).thenReturn(true);
-		when(securityService.hasViewPermissionForGroup(user, "group2")).thenReturn(false);
+    @Test
+    public void shouldGetPipelineGroupsForUser() {
+        PipelineConfig pipelineInGroup1 = new PipelineConfig();
+        PipelineConfigs group1 = new BasicPipelineConfigs(pipelineInGroup1);
+        group1.setGroup("group1");
+        PipelineConfig pipelineInGroup2 = new PipelineConfig();
+        PipelineConfigs group2 = new BasicPipelineConfigs(pipelineInGroup2);
+        group2.setGroup("group2");
+        when(goConfigService.groups()).thenReturn(new PipelineGroups(group1, group2));
+        String user = "looser";
+        when(securityService.hasViewPermissionForGroup(user, "group1")).thenReturn(true);
+        when(securityService.hasViewPermissionForGroup(user, "group2")).thenReturn(false);
 
-		List<PipelineConfigs> gotPipelineGroups = service.getGroupsForUser(user);
+        List<PipelineConfigs> gotPipelineGroups = service.getGroupsForUser(user);
 
-		verify(goConfigService, never()).getAllPipelinesForEditInGroup("group1");
-		assertThat(gotPipelineGroups, is(Arrays.asList(group1)));
-	}
+        verify(goConfigService, never()).getAllPipelinesForEditInGroup("group1");
+        assertThat(gotPipelineGroups, is(Arrays.asList(group1)));
+    }
 
-	@Test
+    @Test
     public void shouldInvokeUpdateConfigCommand_updateGroupAuthorization() {
         Authorization authorization = new Authorization(new OperationConfig(new AdminUser(validUser.getUsername())));
         PipelineConfigs pipelineConfigs = new BasicPipelineConfigs("group", authorization);
 
-        service.updateGroupAuthorization(validUser, pipelineConfigs, "md5", entityHashingService, securityService, result);
+        service.updateGroupAuthorization(validUser, pipelineConfigsFromServer, pipelineConfigs, "md5", entityHashingService, securityService, result);
 
         ArgumentCaptor<EntityConfigUpdateCommand> commandCaptor = ArgumentCaptor.forClass(EntityConfigUpdateCommand.class);
         verify(goConfigService).updateConfig(commandCaptor.capture(), eq(validUser));
@@ -330,7 +331,7 @@ public class PipelineConfigsServiceTest {
             return null;
         }).when(goConfigService).updateConfig(any(), eq(validUser));
 
-        PipelineConfigs updatedPipelineConfigs = service.updateGroupAuthorization(validUser, pipelineConfigs, "md5", entityHashingService, securityService, result);
+        PipelineConfigs updatedPipelineConfigs = service.updateGroupAuthorization(validUser, pipelineConfigsFromServer, pipelineConfigs, "md5", entityHashingService, securityService, result);
 
         assertThat(updatedPipelineConfigs.getAuthorization(), is(authorization));
         assertThat(updatedPipelineConfigs.getGroup(), is("group"));
@@ -342,7 +343,7 @@ public class PipelineConfigsServiceTest {
         PipelineConfigs pipelineConfigs = new BasicPipelineConfigs("group", authorization);
         doThrow(new GoConfigInvalidException(null, "error message")).when(goConfigService).updateConfig(any(), eq(validUser));
 
-        service.updateGroupAuthorization(validUser, pipelineConfigs, "md5", entityHashingService, securityService, result);
+        service.updateGroupAuthorization(validUser, pipelineConfigsFromServer, pipelineConfigs, "md5", entityHashingService, securityService, result);
 
         assertThat(result.httpCode(), is(HttpStatus.SC_UNPROCESSABLE_ENTITY));
         assertThat(result.message(), is("Validations failed for pipelines 'group'. Error(s): [error message]. Please correct and resubmit."));
@@ -354,7 +355,7 @@ public class PipelineConfigsServiceTest {
         PipelineConfigs pipelineConfigs = new BasicPipelineConfigs("group", authorization);
         doThrow(new RuntimeException("server error")).when(goConfigService).updateConfig(any(), eq(validUser));
 
-        service.updateGroupAuthorization(validUser, pipelineConfigs, "md5", entityHashingService, securityService, result);
+        service.updateGroupAuthorization(validUser, pipelineConfigsFromServer, pipelineConfigs, "md5", entityHashingService, securityService, result);
 
         assertThat(result.httpCode(), is(HttpStatus.SC_INTERNAL_SERVER_ERROR));
         assertThat(result.message(), is("Save failed. server error"));

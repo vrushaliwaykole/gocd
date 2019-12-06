@@ -23,38 +23,43 @@ import com.thoughtworks.go.server.service.SecurityService;
 import com.thoughtworks.go.server.service.result.LocalizedOperationResult;
 
 public class UpdatePipelineConfigsAuthCommand extends PipelineConfigsCommand {
-    private final Authorization authorization;
-    private final String group;
+    private final PipelineConfigs newPipelineConfigs;
+    private final PipelineConfigs oldPipelineConfigs;
     private final String md5;
     private final EntityHashingService entityHashingService;
 
-    public UpdatePipelineConfigsAuthCommand(String group, Authorization authorization, LocalizedOperationResult result, Username currentUser, String md5,
-                                            EntityHashingService entityHashingService, SecurityService securityService) {
+    public UpdatePipelineConfigsAuthCommand(PipelineConfigs oldPipelineConfigs, PipelineConfigs newPipelineConfigs, LocalizedOperationResult result, Username currentUser, String md5, EntityHashingService entityHashingService, SecurityService securityService) {
         super(result, currentUser, securityService);
-        this.group = group;
-        this.authorization = authorization;
+        this.oldPipelineConfigs = oldPipelineConfigs;
+        this.newPipelineConfigs = newPipelineConfigs;
         this.md5 = md5;
         this.entityHashingService = entityHashingService;
     }
 
     @Override
     public void update(CruiseConfig preprocessedConfig) throws Exception {
-        preprocessedPipelineConfigs = findPipelineConfigs(preprocessedConfig, group);
-        preprocessedPipelineConfigs.setAuthorization(authorization);
+        preprocessedPipelineConfigs = findPipelineConfigs(preprocessedConfig, oldPipelineConfigs.getGroup());
+        if (!preprocessedPipelineConfigs.isLocal()) {
+            BasicPipelineConfigs pipelineConfigs = new BasicPipelineConfigs(oldPipelineConfigs.getGroup(), preprocessedPipelineConfigs.getAuthorization());
+            preprocessedConfig.getGroups().add(pipelineConfigs);
+        }
+
+        preprocessedPipelineConfigs.setAuthorization(newPipelineConfigs.getAuthorization());
+        preprocessedPipelineConfigs.setGroup(newPipelineConfigs.getGroup());
     }
 
     @Override
     public boolean isValid(CruiseConfig preprocessedConfig) {
-        preprocessedPipelineConfigs = findPipelineConfigs(preprocessedConfig, group);
-        authorization.validateTree(new DelegatingValidationContext(ConfigSaveValidationContext.forChain(preprocessedConfig, preprocessedPipelineConfigs)) {
+        preprocessedPipelineConfigs = findPipelineConfigs(preprocessedConfig, newPipelineConfigs.getGroup());
+        newPipelineConfigs.getAuthorization().validateTree(new DelegatingValidationContext(ConfigSaveValidationContext.forChain(preprocessedConfig, preprocessedPipelineConfigs)) {
             @Override
             public boolean shouldNotCheckRole() {
                 return false;
             }
         });
 
-        if (!authorization.getAllErrors().isEmpty()) {
-            BasicCruiseConfig.copyErrors(authorization, preprocessedPipelineConfigs.getAuthorization());
+        if (!newPipelineConfigs.getAuthorization().getAllErrors().isEmpty()) {
+            BasicCruiseConfig.copyErrors(newPipelineConfigs, preprocessedPipelineConfigs.getAuthorization());
             return false;
         }
         return true;
@@ -62,14 +67,14 @@ public class UpdatePipelineConfigsAuthCommand extends PipelineConfigsCommand {
 
     @Override
     public boolean canContinue(CruiseConfig cruiseConfig) {
-        return isRequestFresh(cruiseConfig) && isUserAdminOfGroup(group);
+        return isRequestFresh(cruiseConfig) && isUserAdminOfGroup(oldPipelineConfigs.getGroup());
     }
 
     private boolean isRequestFresh(CruiseConfig cruiseConfig) {
-        PipelineConfigs existingPipelineConfigs = findPipelineConfigs(cruiseConfig, group);
+        PipelineConfigs existingPipelineConfigs = findPipelineConfigs(cruiseConfig, oldPipelineConfigs.getGroup());
         boolean freshRequest = entityHashingService.md5ForEntity(existingPipelineConfigs).equals(md5);
         if (!freshRequest) {
-            result.stale(EntityType.PipelineGroup.staleConfig(group));
+            result.stale(EntityType.PipelineGroup.staleConfig(oldPipelineConfigs.getGroup()));
         }
         return freshRequest;
     }

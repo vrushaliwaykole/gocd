@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thoughtworks.go.apiv1.admin.pipelinegroups
+
+package com.thoughtworks.go.apiv2.admin.pipelinegroups
 
 import com.thoughtworks.go.api.SecurityTestTrait
 import com.thoughtworks.go.api.spring.ApiAuthenticationHelper
-import com.thoughtworks.go.apiv1.admin.pipelinegroups.representers.PipelineGroupRepresenter
-import com.thoughtworks.go.apiv1.admin.pipelinegroups.representers.PipelineGroupsRepresenter
+import com.thoughtworks.go.apiv2.admin.pipelinegroups.representers.PipelineGroupRepresenter
+import com.thoughtworks.go.apiv2.admin.pipelinegroups.representers.PipelineGroupsRepresenter
 import com.thoughtworks.go.config.Authorization
 import com.thoughtworks.go.config.BasicPipelineConfigs
 import com.thoughtworks.go.domain.PipelineGroups
@@ -43,7 +44,7 @@ import static org.mockito.ArgumentMatchers.eq
 import static org.mockito.Mockito.*
 import static org.mockito.MockitoAnnotations.initMocks
 
-class PipelineGroupsControllerV1Test implements SecurityServiceTrait, ControllerTrait<PipelineGroupsControllerV1> {
+class PipelineGroupsControllerV2Test implements SecurityServiceTrait, ControllerTrait<PipelineGroupsControllerV2> {
 
   @BeforeEach
   void setUp() {
@@ -60,8 +61,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
   private EntityHashingService entityHashingService
 
   @Override
-  PipelineGroupsControllerV1 createControllerInstance() {
-    return new PipelineGroupsControllerV1(pipelineConfigsService, new ApiAuthenticationHelper(securityService, goConfigService), entityHashingService, securityService)
+  PipelineGroupsControllerV2 createControllerInstance() {
+    return new PipelineGroupsControllerV2(pipelineConfigsService, new ApiAuthenticationHelper(securityService, goConfigService), entityHashingService, securityService)
   }
 
   @Nested
@@ -99,10 +100,10 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath())
 
         assertThatResponse()
-          .isOk()
-          .hasEtag('"some-etag"')
-          .hasContentType(controller.mimeType)
-          .hasBodyWithJsonObject(expectedPipelineGroups, PipelineGroupsRepresenter)
+                .isOk()
+                .hasEtag('"some-etag"')
+                .hasContentType(controller.mimeType)
+                .hasBodyWithJsonObject(expectedPipelineGroups, PipelineGroupsRepresenter)
       }
 
       @Test
@@ -117,8 +118,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath(), ['if-none-match': '"some-etag"'])
 
         assertThatResponse()
-          .isNotModified()
-          .hasContentType(controller.mimeType)
+                .isNotModified()
+                .hasContentType(controller.mimeType)
       }
     }
   }
@@ -159,8 +160,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
 
         verify(pipelineConfigsService).createGroup(any(), any(), any())
         assertThatResponse()
-          .isOk()
-          .hasBodyWithJsonObject(pipelineGroup, PipelineGroupRepresenter)
+                .isOk()
+                .hasBodyWithJsonObject(pipelineGroup, PipelineGroupRepresenter)
       }
 
       @Test
@@ -178,8 +179,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         postWithApiHeader(controller.controllerPath(), [name: 'group'])
 
         assertThatResponse()
-          .isUnprocessableEntity()
-          .hasJsonMessage("message from server")
+                .isUnprocessableEntity()
+                .hasJsonMessage("message from server")
       }
 
       @Test
@@ -192,8 +193,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         postWithApiHeader(controller.controllerPath(), [name: 'group'])
 
         assertThatResponse()
-          .isUnprocessableEntity()
-          .hasJsonMessage("Failed to add pipeline group 'group'. Another pipeline group with the same name already exists.")
+                .isUnprocessableEntity()
+                .hasJsonMessage("Failed to add pipeline group 'group'. Another pipeline group with the same name already exists.")
       }
     }
   }
@@ -238,9 +239,9 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath("/group"))
 
         assertThatResponse()
-          .isOk()
-          .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
-          .hasEtag('"md5_for_group"')
+                .isOk()
+                .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
+                .hasEtag('"md5_for_group"')
       }
 
       @Test
@@ -256,8 +257,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath('/group'), ['if-none-match': '"md5_for_group"'])
 
         assertThatResponse()
-          .isNotModified()
-          .hasContentType(controller.mimeType)
+                .isNotModified()
+                .hasContentType(controller.mimeType)
       }
 
       @Test
@@ -267,9 +268,9 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath("/group"))
 
         assertThatResponse()
-          .isNotFound()
-          .hasJsonMessage(controller.entityType.notFoundMessage("group"))
-          .hasContentType(controller.mimeType)
+                .isNotFound()
+                .hasJsonMessage(controller.entityType.notFoundMessage("group"))
+                .hasContentType(controller.mimeType)
       }
 
       @Test
@@ -285,10 +286,10 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         getWithApiHeader(controller.controllerPath('/group'), ['if-none-match': '"junk"'])
 
         assertThatResponse()
-          .isOk()
-          .hasEtag('"md5_for_group"')
-          .hasContentType(controller.mimeType)
-          .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
+                .isOk()
+                .hasEtag('"md5_for_group"')
+                .hasContentType(controller.mimeType)
+                .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
       }
     }
   }
@@ -308,7 +309,7 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         def group = new BasicPipelineConfigs(PipelineConfigMother.pipelineConfig('pipeline1'))
         group.setGroup("group")
         def headers = [
-          'If-Match': 'cached-md5',
+                'If-Match': 'cached-md5',
         ]
         putWithApiHeader(controller.controllerPath('/group'), headers, toObjectString({
           PipelineGroupRepresenter.toJSON(it, group)
@@ -334,7 +335,7 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         when(pipelineConfigsService.updateGroupAuthorization(any(), any(), any(), any(), any(), any(), any())).thenReturn(group)
 
         def headers = [
-          'If-Match': 'md5',
+                'If-Match': 'md5',
         ]
 
         putWithApiHeader(controller.controllerPath("/group1"), headers, toObjectString({
@@ -342,8 +343,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         }))
 
         assertThatResponse()
-          .isOk()
-          .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
+                .isOk()
+                .hasBodyWithJsonObject(group, PipelineGroupRepresenter)
       }
 
       @Test
@@ -353,7 +354,7 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         when(pipelineConfigsService.getGroupsForUser(currentUserLoginName().toString())).thenReturn(new PipelineGroups([group]))
 
         def headers = [
-          'If-Match': 'old-etag',
+                'If-Match': 'old-etag',
         ]
 
         putWithApiHeader(controller.controllerPath("/group1"), headers, toObjectString({
@@ -361,8 +362,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         }))
 
         assertThatResponse()
-          .isPreconditionFailed()
-          .hasJsonMessage("Someone has modified the configuration for pipeline group 'group1'. Please update your copy of the config with the changes and try again.")
+                .isPreconditionFailed()
+                .hasJsonMessage("Someone has modified the configuration for pipeline group 'group1'. Please update your copy of the config with the changes and try again.")
       }
 
       @Test
@@ -376,8 +377,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         }))
 
         assertThatResponse()
-          .isPreconditionFailed()
-          .hasJsonMessage("Someone has modified the configuration for pipeline group 'group1'. Please update your copy of the config with the changes and try again.")
+                .isPreconditionFailed()
+                .hasJsonMessage("Someone has modified the configuration for pipeline group 'group1'. Please update your copy of the config with the changes and try again.")
       }
 
       @Test
@@ -396,7 +397,7 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         })
 
         def headers = [
-          'If-Match': 'md5',
+                'If-Match': 'md5',
         ]
 
         putWithApiHeader(controller.controllerPath("/group1"), headers, toObjectString({
@@ -404,8 +405,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         }))
 
         assertThatResponse()
-          .isUnprocessableEntity()
-          .hasJsonMessage("message from server")
+                .isUnprocessableEntity()
+                .hasJsonMessage("message from server")
       }
 
       @Test
@@ -419,30 +420,31 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         }))
 
         assertThatResponse()
-          .isNotFound()
-          .hasJsonMessage(controller.entityType.notFoundMessage("group"))
-          .hasContentType(controller.mimeType)
+                .isNotFound()
+                .hasJsonMessage(controller.entityType.notFoundMessage("group"))
+                .hasContentType(controller.mimeType)
       }
 
       @Test
-      void "should not allow renaming a pipeline"() {
+      void "should allow renaming a pipeline"() {
         def group = new BasicPipelineConfigs(PipelineConfigMother.pipelineConfig("pipeline1"))
         group.setGroup("group1")
+        def new_group = new BasicPipelineConfigs(PipelineConfigMother.pipelineConfig("pipeline1"))
+        new_group.setGroup("renamed_group")
+        when(entityHashingService.md5ForEntity(group)).thenReturn('md5')
         when(pipelineConfigsService.getGroupsForUser(currentUserLoginName().toString())).thenReturn(new PipelineGroups([group]))
+        when(pipelineConfigsService.updateGroupAuthorization(any(), any(), any(), any(), any(), any(), any())).thenReturn(new_group)
 
         def headers = [
           'If-Match': 'md5',
         ]
 
-        def new_group = new BasicPipelineConfigs(PipelineConfigMother.pipelineConfig("pipeline1"))
-        new_group.setGroup("renamed_group")
         putWithApiHeader(controller.controllerPath("/group1"), headers, toObjectString({
           PipelineGroupRepresenter.toJSON(it, new_group)
         }))
 
         assertThatResponse()
-          .hasStatus(422)
-          .hasJsonMessage("Renaming of pipeline group is not supported by this API.")
+          .hasStatus(200)
       }
     }
   }
@@ -486,8 +488,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         deleteWithApiHeader(controller.controllerPath("/group1"))
 
         assertThatResponse()
-          .isOk()
-          .hasJsonMessage("The group 'group1' was deleted successfully.")
+                .isOk()
+                .hasJsonMessage("The group 'group1' was deleted successfully.")
       }
 
       @Test
@@ -497,8 +499,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         deleteWithApiHeader(controller.controllerPath("/non-existent-group"))
 
         assertThatResponse()
-          .isNotFound()
-          .hasJsonMessage(controller.entityType.notFoundMessage("non-existent-group"))
+                .isNotFound()
+                .hasJsonMessage(controller.entityType.notFoundMessage("non-existent-group"))
       }
 
       @Test
@@ -515,8 +517,8 @@ class PipelineGroupsControllerV1Test implements SecurityServiceTrait, Controller
         deleteWithApiHeader(controller.controllerPath("/group1"))
 
         assertThatResponse()
-          .isUnprocessableEntity()
-          .hasJsonMessage("Cannot delete group when not empty")
+                .isUnprocessableEntity()
+                .hasJsonMessage("Cannot delete group when not empty")
       }
     }
   }

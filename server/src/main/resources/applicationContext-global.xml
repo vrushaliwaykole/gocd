@@ -28,6 +28,7 @@
   <context:component-scan base-package="com.thoughtworks.go.apiv1.jobinstance"/>
   <context:component-scan base-package="com.thoughtworks.go.apiv2.stageoperations"/>
   <context:component-scan base-package="com.thoughtworks.go.apiv1.pipelineinstance"/>
+  <context:component-scan base-package="com.thoughtworks.go.apiv2.admin.pipelinegroups"/>
   <context:component-scan base-package="com.thoughtworks.go.apiv1.agentjobhistory"/>
   <context:component-scan base-package="com.thoughtworks.go.apiv3.rolesconfig"/>
   <context:component-scan base-package="com.thoughtworks.go.apiv2.securityauthconfig"/>

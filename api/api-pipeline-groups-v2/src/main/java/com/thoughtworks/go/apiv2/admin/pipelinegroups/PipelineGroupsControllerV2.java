@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.thoughtworks.go.apiv1.admin.pipelinegroups;
-
+package com.thoughtworks.go.apiv2.admin.pipelinegroups;
 
 import com.thoughtworks.go.api.ApiController;
 import com.thoughtworks.go.api.ApiVersion;
@@ -24,8 +23,8 @@ import com.thoughtworks.go.api.base.OutputWriter;
 import com.thoughtworks.go.api.representers.JsonReader;
 import com.thoughtworks.go.api.spring.ApiAuthenticationHelper;
 import com.thoughtworks.go.api.util.GsonTransformer;
-import com.thoughtworks.go.apiv1.admin.pipelinegroups.representers.PipelineGroupRepresenter;
-import com.thoughtworks.go.apiv1.admin.pipelinegroups.representers.PipelineGroupsRepresenter;
+import com.thoughtworks.go.apiv2.admin.pipelinegroups.representers.PipelineGroupRepresenter;
+import com.thoughtworks.go.apiv2.admin.pipelinegroups.representers.PipelineGroupsRepresenter;
 import com.thoughtworks.go.config.PipelineConfigs;
 import com.thoughtworks.go.config.exceptions.EntityType;
 import com.thoughtworks.go.config.exceptions.RecordNotFoundException;
@@ -51,15 +50,16 @@ import static com.thoughtworks.go.api.util.HaltApiResponses.*;
 import static spark.Spark.*;
 
 @Component
-public class PipelineGroupsControllerV1 extends ApiController implements SparkSpringController, CrudController<PipelineConfigs> {
+public class PipelineGroupsControllerV2 extends ApiController implements SparkSpringController, CrudController<PipelineConfigs> {
+
     private final PipelineConfigsService pipelineConfigsService;
     private final ApiAuthenticationHelper apiAuthenticationHelper;
     private final EntityHashingService entityHashingService;
     private final SecurityService securityService;
 
     @Autowired
-    public PipelineGroupsControllerV1(PipelineConfigsService pipelineConfigsService, ApiAuthenticationHelper apiAuthenticationHelper, EntityHashingService entityHashingService, SecurityService securityService) {
-        super(ApiVersion.v1);
+    public PipelineGroupsControllerV2(PipelineConfigsService pipelineConfigsService, ApiAuthenticationHelper apiAuthenticationHelper, EntityHashingService entityHashingService, SecurityService securityService) {
+        super(ApiVersion.v2);
         this.pipelineConfigsService = pipelineConfigsService;
         this.apiAuthenticationHelper = apiAuthenticationHelper;
         this.entityHashingService = entityHashingService;
@@ -133,10 +133,6 @@ public class PipelineGroupsControllerV1 extends ApiController implements SparkSp
     public String update(Request req, Response res) {
         PipelineConfigs pipelineConfigsFromServer = fetchEntityFromConfig(req.params("group_name"));
         PipelineConfigs pipelineConfigsFromReq = buildEntityFromRequestBody(req);
-
-        if (isRenameAttempt(pipelineConfigsFromServer, pipelineConfigsFromReq)) {
-            throw haltBecauseRenameOfEntityIsNotSupported("pipeline group");
-        }
 
         if (isPutRequestStale(req, pipelineConfigsFromServer)) {
             throw haltBecauseEtagDoesNotMatch("pipeline group", pipelineConfigsFromServer.getGroup());

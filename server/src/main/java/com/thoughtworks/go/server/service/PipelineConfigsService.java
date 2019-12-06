@@ -124,8 +124,8 @@ public class PipelineConfigsService {
         }
     }
 
-    public PipelineConfigs updateGroupAuthorization(Username currentUser, PipelineConfigs newPipelineConfigs, String existingMd5, EntityHashingService entityHashingService, SecurityService securityService, LocalizedOperationResult result) {
-        UpdatePipelineConfigsAuthCommand updatePipelineConfigsCommand = new UpdatePipelineConfigsAuthCommand(newPipelineConfigs.getGroup(), newPipelineConfigs.getAuthorization(), result, currentUser, existingMd5, entityHashingService, securityService);
+    public PipelineConfigs updateGroupAuthorization(Username currentUser, PipelineConfigs pipelineConfigsFromServer, PipelineConfigs newPipelineConfigs, String existingMd5, EntityHashingService entityHashingService, SecurityService securityService, LocalizedOperationResult result) {
+        UpdatePipelineConfigsAuthCommand updatePipelineConfigsCommand = new UpdatePipelineConfigsAuthCommand(pipelineConfigsFromServer, newPipelineConfigs, result, currentUser, existingMd5, entityHashingService, securityService);
         update(currentUser, newPipelineConfigs, result, updatePipelineConfigsCommand);
         return updatePipelineConfigsCommand.getPreprocessedEntityConfig();
     }
